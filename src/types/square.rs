@@ -185,8 +185,13 @@ impl Square {
     }
 
     #[inline]
-    pub fn new(file: &File, rank: &Rank) -> Square {
+    pub fn from_file_rank(file: &File, rank: &Rank) -> Square {
         Square(file.0 << 3 + rank.0)
+    }
+
+    #[inline]
+    pub fn new(sq: i8) -> Square {
+        Square(sq)
     }
 
     #[inline]
