@@ -74,7 +74,6 @@ fn init_king_moves() -> [Bitboard; Square::NUM_SQUARES] {
 
 fn init_magic() -> [Bitboard; Magic::SIZE] {
     let mut result = [Bitboard::EMPTY; Magic::SIZE];
-    dbg!("init");
     for square in Square::SQUARES.iter() {
         get_magic(square, &BISHOP_MOVE_STEPS, &Magic::BISHOP[square.to_usize()], Magic::BISHOP_SHIFT, &mut result);
         get_magic(square, &ROOK_MOVE_STEPS, &Magic::ROOK[square.to_usize()], Magic::ROOK_SHIFT, &mut result);
