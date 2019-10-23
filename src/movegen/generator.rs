@@ -14,10 +14,6 @@ const SOUTH: i8 = -8;
 const EAST: i8 = 1;
 const WEST: i8 = -1;
 
-const PAWN_ATTACK_STEP: [i8; 2] = [
-    NORTH + WEST,
-    NORTH + EAST];
-
 const KNIGHT_MOVE_STEPS: [i8; 8] = [
     NORTH * 2 + EAST,
     NORTH * 2 + WEST,
@@ -27,16 +23,19 @@ const KNIGHT_MOVE_STEPS: [i8; 8] = [
     SOUTH + 2 * WEST,
     SOUTH * 2 + WEST,
     SOUTH * 2 + EAST];
+
 const BISHOP_MOVE_STEPS: [i8; 4] = [
     NORTH + EAST,
     NORTH + WEST,
     SOUTH + EAST,
     SOUTH + WEST];
+
 const ROOK_MOVE_STEPS: [i8; 4] = [
     NORTH,
     EAST,
     WEST,
     SOUTH];
+
 const KING_MOVE_STEPS: [i8; 8] = [
     NORTH + EAST,
     NORTH,
@@ -47,13 +46,13 @@ const KING_MOVE_STEPS: [i8; 8] = [
     SOUTH + WEST];
 
 pub fn generate_movegen_file() -> io::Result<()> {
-    let out_dir = env::var("OUT_DIR").unwrap();
+    let out_dir = env::var("OUT_DIR").expect("got OUT_DIR");;
     let magic_path = Path::new(&out_dir).join("bitboard_move.rs");
-    let mut file = File::create(&magic_path).unwrap();
+    let mut file = File::create(&magic_path).expect("Created file");
 
     write_array(&mut file, "KNIGHT_MOVES", &init_knight_moves())?;
     write_array(&mut file, "KING_MOVES", &init_king_moves())?;
-//    write_array(&mut file, "ATTACKS", &init_magic())?;
+    write_array(&mut file, "ATTACKS", &init_magic())?;
     Ok(())
 }
 
