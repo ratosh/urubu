@@ -1,10 +1,11 @@
-pub mod movegen;
+pub mod generator;
+pub mod magic;
 pub mod types;
 pub mod utils;
 
 use std::io;
 
-use crate::movegen::generator::generate_movegen_file;
+use crate::generator::generate_movegen_file;
 
 fn main() -> io::Result<()> {
     generate_movegen_file()?;

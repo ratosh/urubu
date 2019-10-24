@@ -1,4 +1,4 @@
-use crate::movegen::magic::Magic;
+use crate::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
@@ -42,14 +42,22 @@ pub fn pawn_attacks_right(bitboard: &Bitboard, color: &Color) -> Bitboard {
 }
 
 #[inline]
+pub fn knight_moves(square: &Square) -> Bitboard {
+    return KNIGHT_MOVES[square.to_usize()];
+}
+
+#[inline]
+pub fn king_moves(square: &Square) -> Bitboard {
+    return KING_MOVES[square.to_usize()];
+}
+
+#[inline]
 pub fn bishop_moves(square: &Square, occupied: &Bitboard) -> Bitboard {
     let magic = &Magic::BISHOP[square.to_usize()];
     let index = ((magic.factor.wrapping_mul(occupied.0 & magic.mask)) as u64 >> (Square::NUM_SQUARES - Magic::BISHOP_SHIFT) as u64) + magic.offset;
     println!("index {}", index);
     return ATTACKS[index as usize];
 }
-
-
 
 #[cfg(test)]
 mod test {

@@ -2,7 +2,7 @@ use std::{env, io};
 use std::fs::File;
 use std::path::Path;
 
-use crate::movegen::magic::Magic;
+use crate::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
