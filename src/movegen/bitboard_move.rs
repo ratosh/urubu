@@ -1,4 +1,4 @@
-use crate::magic::Magic;
+use crate::generator::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;

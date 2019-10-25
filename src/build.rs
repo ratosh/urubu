@@ -1,13 +1,12 @@
 pub mod generator;
-pub mod magic;
 pub mod types;
 pub mod utils;
 
 use std::io;
 
-use crate::generator::generate_movegen_file;
+use crate::generator::bitboard_generator::generate_bitboard_file;
 
 fn main() -> io::Result<()> {
-    generate_movegen_file()?;
+    generate_bitboard_file()?;
     Ok(())
 }

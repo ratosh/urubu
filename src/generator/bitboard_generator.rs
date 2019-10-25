@@ -2,7 +2,7 @@ use std::{env, io};
 use std::fs::File;
 use std::path::Path;
 
-use crate::magic::Magic;
+use crate::generator::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
@@ -45,7 +45,7 @@ const KING_MOVE_STEPS: [i8; 8] = [
     SOUTH,
     SOUTH + WEST];
 
-pub fn generate_movegen_file() -> io::Result<()> {
+pub fn generate_bitboard_file() -> io::Result<()> {
     let out_dir = env::var("OUT_DIR").expect("got OUT_DIR");;
     let magic_path = Path::new(&out_dir).join("bitboard_move.rs");
     let mut file = File::create(&magic_path).expect("Created file");

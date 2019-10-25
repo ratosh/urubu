@@ -1,5 +1,5 @@
-pub mod bitboard_move;
-pub mod magic;
+pub mod generator;
+pub mod movegen;
 pub mod types;
 pub mod search;
 pub mod utils;
