@@ -229,6 +229,9 @@ impl Square {
         self.file().distance(&other.file())
     }
 
+    pub fn is_valid(&self) -> bool {
+        self.0 >= 0 && self.0 < Square::H8.0
+    }
 
     pub fn offset(&self, value: &i8) -> Option<Self> {
         let result = self.0 + *value;

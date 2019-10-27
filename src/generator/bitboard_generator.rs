@@ -6,7 +6,7 @@ use crate::generator::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
-use crate::utils::file_writer::write_array;
+use crate::utils::file_writer::{write_2d_array, write_array};
 
 const NORTH: i8 = 8;
 const SOUTH: i8 = -8;
@@ -46,13 +46,14 @@ const KING_MOVE_STEPS: [i8; 8] = [
     SOUTH + WEST];
 
 pub fn generate_bitboard_file() -> io::Result<()> {
-    let out_dir = env::var("OUT_DIR").expect("got OUT_DIR");;
+    let out_dir = env::var("OUT_DIR").expect("got OUT_DIR");
     let magic_path = Path::new(&out_dir).join("bitboard_move.rs");
     let mut file = File::create(&magic_path).expect("Created file");
 
     write_array(&mut file, "KNIGHT_MOVES", &init_knight_moves())?;
     write_array(&mut file, "KING_MOVES", &init_king_moves())?;
     write_array(&mut file, "ATTACKS", &init_magic())?;
+    write_2d_array(&mut file, "BETWEEN", &init_between())?;
     Ok(())
 }
 
@@ -94,6 +95,34 @@ pub fn get_magic(square: &Square, move_steps: &[i8], magic: &Magic, shift: usize
     }
 }
 
+fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
+    let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Square::NUM_SQUARES];
+    let direction_array: [[i8; 1]; 4] = [[7], [9], [1], [8]];
+    let border_array = [Bitboard::FILE_A.union(&Bitboard::RANK_8),
+        Bitboard::FILE_H.union(&Bitboard::RANK_8),
+        Bitboard::FILE_H,
+        Bitboard::RANK_8];
+    for start_square in Square::SQUARES.iter() {
+        for (index, direction) in direction_array.iter().enumerate() {
+            let border = border_array[index];
+            let mut moving_square: Option<Square> = Some(*start_square);
+            let mut bitboard = Bitboard::from_square(&start_square);
+            while bitboard.intersect(&border) == Bitboard::EMPTY {
+                moving_square = moving_square.unwrap().offset(&direction[0 as usize]);
+                if moving_square.is_none() {
+                    break;
+                }
+                let final_square = moving_square.unwrap();
+                bitboard = Bitboard::from_square(&final_square);
+                let between = slide_moves(start_square, direction, &bitboard.union(&border)).not(&bitboard);
+                result[start_square.to_usize()][final_square.to_usize()] = between;
+                result[final_square.to_usize()][start_square.to_usize()] = between;
+            }
+        }
+    }
+    result
+}
+
 fn slide_moves(square: &Square, slide_values: &[i8], limit: &Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     for slide in slide_values {
@@ -128,17 +157,17 @@ mod test {
     #[test]
     fn knight_moves_test() {
         let knight_moves = init_knight_moves();
-        assert_eq!(knight_moves[Square::A1.to_usize()], Bitboard::B3.merge(&Bitboard::C2));
-        assert_eq!(knight_moves[Square::B2.to_usize()], Bitboard::A4.merge(&Bitboard::C4).merge(&Bitboard::D3).merge(&Bitboard::D1));
+        assert_eq!(knight_moves[Square::A1.to_usize()], Bitboard::B3.union(&Bitboard::C2));
+        assert_eq!(knight_moves[Square::B2.to_usize()], Bitboard::A4.union(&Bitboard::C4).union(&Bitboard::D3).union(&Bitboard::D1));
     }
 
     #[test]
     fn king_moves_test() {
         let king_moves = init_king_moves();
-        assert_eq!(king_moves[Square::A1.to_usize()], Bitboard::A2.merge(&Bitboard::B1).merge(&Bitboard::B2));
-        assert_eq!(king_moves[Square::B2.to_usize()], Bitboard::A1.merge(&Bitboard::A2).merge(&Bitboard::A3)
-            .merge(&Bitboard::B1).merge(&Bitboard::B3).merge(&Bitboard::C1)
-            .merge(&Bitboard::C2).merge(&Bitboard::C3));
+        assert_eq!(king_moves[Square::A1.to_usize()], Bitboard::A2.union(&Bitboard::B1).union(&Bitboard::B2));
+        assert_eq!(king_moves[Square::B2.to_usize()], Bitboard::A1.union(&Bitboard::A2).union(&Bitboard::A3)
+            .union(&Bitboard::B1).union(&Bitboard::B3).union(&Bitboard::C1)
+            .union(&Bitboard::C2).union(&Bitboard::C3));
     }
 
     #[test]
@@ -149,5 +178,12 @@ mod test {
                 println!("{}", index);
             }
         }
+    }
+
+    #[test]
+    fn init_between_test() {
+        let between = init_between();
+        assert_eq!(between[Square::A1.to_usize()][Square::B1.to_usize()], Bitboard::EMPTY);
+        assert_eq!(between[Square::A1.to_usize()][Square::C1.to_usize()], Bitboard::B1);
     }
 }

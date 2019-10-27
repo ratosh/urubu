@@ -24,6 +24,12 @@ impl Bitboard {
     pub const ALL: Bitboard = Bitboard(0xFFFFFFFFFFFFFFFFu64);
     pub const EMPTY: Bitboard = Bitboard(0u64);
 
+    pub const FILE_A: Bitboard = Bitboard(0xFFu64);
+    pub const FILE_H: Bitboard = Bitboard(0xFFu64 << 56);
+
+    pub const RANK_1: Bitboard = Bitboard(0xFFu64 << 56);
+    pub const RANK_8: Bitboard = Bitboard(0xFFu64 << 56);
+
     pub const A1: Bitboard = Bitboard(1u64 << 0);
     pub const B1: Bitboard = Bitboard(1u64 << 1);
     pub const C1: Bitboard = Bitboard(1u64 << 2);
@@ -107,8 +113,18 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn merge(&mut self, other: &Self) -> Self {
+    pub fn intersect(&self, other: &Self) -> Self {
+        Bitboard(self.0 & other.0)
+    }
+
+    #[inline]
+    pub fn union(&mut self, other: &Self) -> Self {
         Bitboard(self.0 | other.0)
+    }
+
+    #[inline]
+    pub fn not(&mut self, other: &Self) -> Self {
+        Bitboard(self.0 ^ other.0)
     }
 
     #[inline]
