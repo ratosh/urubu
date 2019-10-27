@@ -16,13 +16,15 @@ pub fn write_array(file: &mut File, name: &str, array: &[Bitboard]) -> io::Resul
 }
 
 
-pub fn write_2d_array(file: &mut File, name: &str, array: &[[Bitboard;64];64]) -> io::Result<()> {
-    write!(file, "const {}: [[Bitboard; {}];{}] = [[", name, array.len(), array.len())?;
+pub fn write_2d_array(file: &mut File, name: &str, array: &[[Bitboard; 64]]) -> io::Result<()> {
+    let inner_size = array[0].len();
+    let outer_size = array.len();
+    write!(file, "const {}: [[Bitboard; {}];{}] = [[", name, inner_size, outer_size)?;
     for (index, entry) in array.iter().enumerate() {
         for inner_entry in entry.iter() {
             write!(file, "  Bitboard({}), ", inner_entry.0)?;
         }
-        if index < 63 {
+        if index < outer_size - 1 {
             write!(file, "],[\n")?;
         }
     }

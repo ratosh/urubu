@@ -8,6 +8,8 @@ use crate::types::color::Color;
 use crate::types::square::Square;
 use crate::utils::file_writer::{write_2d_array, write_array};
 
+const PAWN_FORWARD: [i8; Color::NUM_COLORS] = [NORTH, SOUTH];
+
 const NORTH: i8 = 8;
 const SOUTH: i8 = -8;
 
@@ -54,6 +56,7 @@ pub fn generate_bitboard_file() -> io::Result<()> {
     write_array(&mut file, "KING_MOVES", &init_king_moves())?;
     write_array(&mut file, "ATTACKS", &init_magic())?;
     write_2d_array(&mut file, "BETWEEN", &init_between())?;
+    write_2d_array(&mut file, "PAWN_MOVES", &init_pawn_moves())?;
     Ok(())
 }
 
@@ -123,6 +126,23 @@ fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
     result
 }
 
+fn init_pawn_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
+    let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
+    for square in Square::SQUARES.iter() {
+        result[Color::WHITE.to_usize()][square.to_usize()] = init_pawn_move(&square, &Color::WHITE);
+        result[Color::BLACK.to_usize()][square.to_usize()] = init_pawn_move(&square, &Color::BLACK);
+    }
+    return result;
+}
+
+fn init_pawn_move(square: &Square, color: &Color) -> Bitboard {
+    let forward = square.offset(&PAWN_FORWARD[color.to_usize()]);
+    if forward != None {
+        return Bitboard::from_square(&forward.unwrap());
+    }
+    return Bitboard::EMPTY;
+}
+
 fn slide_moves(square: &Square, slide_values: &[i8], limit: &Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     for slide in slide_values {
@@ -148,42 +168,4 @@ fn slide_move(square: &Square, slide_value: &i8, limit: &Bitboard) -> Bitboard {
         old_square = new_square;
     }
     return result;
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn knight_moves_test() {
-        let knight_moves = init_knight_moves();
-        assert_eq!(knight_moves[Square::A1.to_usize()], Bitboard::B3.union(&Bitboard::C2));
-        assert_eq!(knight_moves[Square::B2.to_usize()], Bitboard::A4.union(&Bitboard::C4).union(&Bitboard::D3).union(&Bitboard::D1));
-    }
-
-    #[test]
-    fn king_moves_test() {
-        let king_moves = init_king_moves();
-        assert_eq!(king_moves[Square::A1.to_usize()], Bitboard::A2.union(&Bitboard::B1).union(&Bitboard::B2));
-        assert_eq!(king_moves[Square::B2.to_usize()], Bitboard::A1.union(&Bitboard::A2).union(&Bitboard::A3)
-            .union(&Bitboard::B1).union(&Bitboard::B3).union(&Bitboard::C1)
-            .union(&Bitboard::C2).union(&Bitboard::C3));
-    }
-
-    #[test]
-    fn init_magic_test() {
-        let attacks = init_magic();
-        for (index, entry) in attacks.iter().enumerate() {
-            if *entry == Bitboard::EMPTY {
-                println!("{}", index);
-            }
-        }
-    }
-
-    #[test]
-    fn init_between_test() {
-        let between = init_between();
-        assert_eq!(between[Square::A1.to_usize()][Square::B1.to_usize()], Bitboard::EMPTY);
-        assert_eq!(between[Square::A1.to_usize()][Square::C1.to_usize()], Bitboard::B1);
-    }
 }
