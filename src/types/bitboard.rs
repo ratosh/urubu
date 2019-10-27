@@ -124,7 +124,7 @@ impl Bitboard {
 
     #[inline]
     pub fn not(&mut self, other: &Self) -> Self {
-        Bitboard(self.0 ^ other.0)
+        Bitboard(self.0 & !other.0)
     }
 
     #[inline]
