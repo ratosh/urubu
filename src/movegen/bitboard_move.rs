@@ -3,7 +3,7 @@ use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
 
-include!(concat!(env!("OUT_DIR"), "/bitboard_move.rs"));
+include!(concat!(env!("OUT_DIR"), "/bitboard_generated.rs"));
 
 const NORTH: i8 = 8;
 const SOUTH: i8 = -8;
@@ -93,6 +93,14 @@ mod test {
         assert_eq!(PAWN_MOVES[Color::WHITE.to_usize()][Square::A8.to_usize()], Bitboard::EMPTY);
         assert_eq!(PAWN_MOVES[Color::BLACK.to_usize()][Square::A2.to_usize()], Bitboard::A1);
         assert_eq!(PAWN_MOVES[Color::BLACK.to_usize()][Square::A1.to_usize()], Bitboard::EMPTY);
+    }
+
+    #[test]
+    fn pawn_double_move_test() {
+        assert_eq!(PAWN_DOUBLE_MOVES[Color::WHITE.to_usize()][Square::A2.to_usize()], Bitboard::A4);
+        assert_eq!(PAWN_DOUBLE_MOVES[Color::WHITE.to_usize()][Square::A3.to_usize()], Bitboard::EMPTY);
+        assert_eq!(PAWN_DOUBLE_MOVES[Color::BLACK.to_usize()][Square::A2.to_usize()], Bitboard::EMPTY);
+        assert_eq!(PAWN_DOUBLE_MOVES[Color::BLACK.to_usize()][Square::A7.to_usize()], Bitboard::A5);
     }
 
     #[test]
