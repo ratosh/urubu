@@ -1,7 +1,6 @@
 use crate::types::move_type::MoveType;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
-use crate::types::board::Board;
 
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
 pub struct Move(pub u16);

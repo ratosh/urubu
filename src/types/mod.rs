@@ -1,11 +1,11 @@
 pub mod bitboard;
-pub mod board;
-pub mod board_state;
+pub mod board_move;
 pub mod castling_rights;
 pub mod color;
 pub mod file;
-pub mod board_move;
+pub mod magic;
 pub mod move_type;
 pub mod piece_type;
 pub mod rank;
 pub mod square;
+pub mod zobrist_key;

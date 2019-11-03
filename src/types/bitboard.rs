@@ -118,22 +118,22 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn union(&mut self, other: &Self) -> Self {
+    pub fn add(&self, other: &Self) -> Self {
         Bitboard(self.0 | other.0)
     }
 
     #[inline]
-    pub fn not(&mut self, other: &Self) -> Self {
+    pub fn remove(&self, other: &Self) -> Self {
         Bitboard(self.0 & !other.0)
     }
 
     #[inline]
-    pub fn add(&mut self, other: &Self) {
-        self.0 |= other.0
+    pub fn invert(&self) -> Self {
+        Bitboard(!self.0)
     }
 
     #[inline]
-    pub fn add_square(&mut self, other: &Square) {
+    pub fn add_square(&self, other: &Square) -> Self {
         self.add(&Bitboard::from_square(other))
     }
 

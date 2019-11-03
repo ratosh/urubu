@@ -15,7 +15,6 @@ pub fn write_array(file: &mut File, name: &str, array: &[Bitboard]) -> io::Resul
     Ok(())
 }
 
-
 pub fn write_2d_array(file: &mut File, name: &str, array: &[[Bitboard; 64]]) -> io::Result<()> {
     let inner_size = array[0].len();
     let outer_size = array.len();

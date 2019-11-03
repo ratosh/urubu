@@ -1,7 +1,7 @@
-use crate::generator::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
+use crate::types::magic::Magic;
 
 include!(concat!(env!("OUT_DIR"), "/bitboard_generated.rs"));
 
@@ -16,7 +16,7 @@ const PAWN_ATTACK_STEP: [i8; 2] = [
     NORTH + EAST];
 
 #[inline]
-pub fn pawn_forward(bitboard: &Bitboard, color: &Color) -> Bitboard {
+pub fn pawn_forward(color: &Color, bitboard: &Bitboard) -> Bitboard {
     Bitboard(match color {
         &Color::WHITE => bitboard.0 << NORTH as u64,
         _ => bitboard.0 >> NORTH as u64,
@@ -24,7 +24,7 @@ pub fn pawn_forward(bitboard: &Bitboard, color: &Color) -> Bitboard {
 }
 
 #[inline]
-pub fn pawn_attacks_left(bitboard: &Bitboard, color: &Color) -> Bitboard {
+pub fn pawn_attacks_left(color: &Color, bitboard: &Bitboard) -> Bitboard {
     Bitboard(match color {
         &Color::WHITE => bitboard.0 << PAWN_ATTACK_STEP[0] as u64,
         _ => bitboard.0 >> PAWN_ATTACK_STEP[0] as u64,
@@ -32,11 +32,31 @@ pub fn pawn_attacks_left(bitboard: &Bitboard, color: &Color) -> Bitboard {
 }
 
 #[inline]
-pub fn pawn_attacks_right(bitboard: &Bitboard, color: &Color) -> Bitboard {
+pub fn pawn_attacks_right(color: &Color, bitboard: &Bitboard) -> Bitboard {
     Bitboard(match color {
         &Color::WHITE => bitboard.0 << PAWN_ATTACK_STEP[1] as u64,
         _ => bitboard.0 >> PAWN_ATTACK_STEP[1] as u64,
     })
+}
+
+#[inline]
+pub fn pawn_attacks(color: &Color, square: &Square) -> Bitboard {
+    return PAWN_ATTACKS[color.to_usize()][square.to_usize()]
+}
+
+#[inline]
+pub fn pawn_move(color: &Color, square: &Square) -> Bitboard {
+    return PAWN_MOVES[color.to_usize()][square.to_usize()]
+}
+
+#[inline]
+pub fn pawn_double_move(color: &Color, square: &Square) -> Bitboard {
+    return PAWN_DOUBLE_MOVES[color.to_usize()][square.to_usize()]
+}
+
+#[inline]
+pub fn between(square1: &Square, square2: &Square) -> Bitboard {
+    return BETWEEN[square1.to_usize()][square2.to_usize()]
 }
 
 #[inline]
@@ -69,22 +89,22 @@ mod test {
 
     #[test]
     fn knight_moves_test() {
-        assert_eq!(KNIGHT_MOVES[Square::A1.to_usize()], Bitboard::B3.union(&Bitboard::C2));
-        assert_eq!(KNIGHT_MOVES[Square::B2.to_usize()], Bitboard::A4.union(&Bitboard::C4).union(&Bitboard::D3).union(&Bitboard::D1));
+        assert_eq!(KNIGHT_MOVES[Square::A1.to_usize()], Bitboard::B3.add(&Bitboard::C2));
+        assert_eq!(KNIGHT_MOVES[Square::B2.to_usize()], Bitboard::A4.add(&Bitboard::C4).add(&Bitboard::D3).add(&Bitboard::D1));
     }
 
     #[test]
     fn king_moves_test() {
-        assert_eq!(KING_MOVES[Square::A1.to_usize()], Bitboard::A2.union(&Bitboard::B1).union(&Bitboard::B2));
-        assert_eq!(KING_MOVES[Square::B2.to_usize()], Bitboard::A1.union(&Bitboard::A2).union(&Bitboard::A3)
-            .union(&Bitboard::B1).union(&Bitboard::B3).union(&Bitboard::C1)
-            .union(&Bitboard::C2).union(&Bitboard::C3));
+        assert_eq!(KING_MOVES[Square::A1.to_usize()], Bitboard::A2.add(&Bitboard::B1).add(&Bitboard::B2));
+        assert_eq!(KING_MOVES[Square::B2.to_usize()], Bitboard::A1.add(&Bitboard::A2).add(&Bitboard::A3)
+            .add(&Bitboard::B1).add(&Bitboard::B3).add(&Bitboard::C1)
+            .add(&Bitboard::C2).add(&Bitboard::C3));
     }
 
     #[test]
     fn pawn_bitboard_forward_test() {
-        assert_eq!(pawn_forward(&Bitboard::A2, &Color::WHITE), Bitboard::A3);
-        assert_eq!(pawn_forward(&Bitboard::A2, &Color::BLACK), Bitboard::A1);
+        assert_eq!(pawn_forward(&Color::WHITE, &Bitboard::A2), Bitboard::A3);
+        assert_eq!(pawn_forward(&Color::BLACK, &Bitboard::A2), Bitboard::A1);
     }
 
     #[test]
@@ -105,16 +125,16 @@ mod test {
 
     #[test]
     fn bishop_move_test() {
-        assert_eq!(bishop_moves(&Square::A1, &Bitboard::EMPTY), Bitboard::B2.union(&Bitboard::C3)
-            .union(&Bitboard::D4).union(&Bitboard::E5).union(&Bitboard::F6).union(&Bitboard::G7)
-            .union(&Bitboard::H8));
+        assert_eq!(bishop_moves(&Square::A1, &Bitboard::EMPTY), Bitboard::B2.add(&Bitboard::C3)
+            .add(&Bitboard::D4).add(&Bitboard::E5).add(&Bitboard::F6).add(&Bitboard::G7)
+            .add(&Bitboard::H8));
     }
 
     #[test]
     fn rook_move_test() {
-        assert_eq!(bishop_moves(&Square::A1, &Bitboard::EMPTY), Bitboard::A2.union(&Bitboard::A3)
-            .union(&Bitboard::A4).union(&Bitboard::A5).union(&Bitboard::A6).union(&Bitboard::A7)
-            .union(&Bitboard::A8).union(&Bitboard::B1).union(&Bitboard::C1).union(&Bitboard::D1)
-            .union(&Bitboard::E1).union(&Bitboard::F1).union(&Bitboard::G1).union(&Bitboard::H1));
+        assert_eq!(bishop_moves(&Square::A1, &Bitboard::EMPTY), Bitboard::A2.add(&Bitboard::A3)
+            .add(&Bitboard::A4).add(&Bitboard::A5).add(&Bitboard::A6).add(&Bitboard::A7)
+            .add(&Bitboard::A8).add(&Bitboard::B1).add(&Bitboard::C1).add(&Bitboard::D1)
+            .add(&Bitboard::E1).add(&Bitboard::F1).add(&Bitboard::G1).add(&Bitboard::H1));
     }
 }

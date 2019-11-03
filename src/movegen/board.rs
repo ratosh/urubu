@@ -2,7 +2,7 @@ use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::square::Square;
 use crate::types::piece_type::PieceType;
-use crate::types::board_state::BoardState;
+use crate::movegen::board_state::BoardState;
 
 #[derive(Clone)]
 pub struct Board {
@@ -23,4 +23,9 @@ pub struct Board {
 
 impl Board {
     pub const GAME_MAX_LENGTH:usize = 4095;
+
+    #[inline]
+    pub fn empty_bitboard(&self) -> Bitboard {
+        self.game_bitboard.invert()
+    }
 }

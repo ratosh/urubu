@@ -2,7 +2,7 @@ use std::{env, io};
 use std::fs::File;
 use std::path::Path;
 
-use crate::generator::magic::Magic;
+use crate::types::magic::Magic;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::rank::Rank;
@@ -10,6 +10,8 @@ use crate::types::square::Square;
 use crate::utils::file_writer::{write_2d_array, write_array};
 
 const PAWN_FORWARD: [i8; Color::NUM_COLORS] = [NORTH, SOUTH];
+const PAWN_ATTACK_LEFT: [i8; Color::NUM_COLORS] = [NORTH + WEST, SOUTH + WEST];
+const PAWN_ATTACK_RIGHT: [i8; Color::NUM_COLORS] = [NORTH + EAST, SOUTH + EAST];
 
 const NORTH: i8 = 8;
 const SOUTH: i8 = -8;
@@ -57,6 +59,7 @@ pub fn generate_bitboard_file() -> io::Result<()> {
     write_array(&mut file, "KING_MOVES", &init_king_moves())?;
     write_array(&mut file, "ATTACKS", &init_magic())?;
     write_2d_array(&mut file, "BETWEEN", &init_between())?;
+    write_2d_array(&mut file, "PAWN_ATTACKS", &init_pawn_attacks())?;
     write_2d_array(&mut file, "PAWN_MOVES", &init_pawn_moves())?;
     write_2d_array(&mut file, "PAWN_DOUBLE_MOVES", &init_pawn_double_moves())?;
     Ok(())
@@ -103,8 +106,8 @@ pub fn get_magic(square: &Square, move_steps: &[i8], magic: &Magic, shift: usize
 fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Square::NUM_SQUARES];
     let direction_array: [[i8; 1]; 4] = [[7], [9], [1], [8]];
-    let border_array = [Bitboard::FILE_A.union(&Bitboard::RANK_8),
-        Bitboard::FILE_H.union(&Bitboard::RANK_8),
+    let border_array = [Bitboard::FILE_A.add(&Bitboard::RANK_8),
+        Bitboard::FILE_H.add(&Bitboard::RANK_8),
         Bitboard::FILE_H,
         Bitboard::RANK_8];
     for start_square in Square::SQUARES.iter() {
@@ -119,7 +122,7 @@ fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
                 }
                 let final_square = moving_square.unwrap();
                 bitboard = Bitboard::from_square(&final_square);
-                let between = slide_moves(start_square, direction, &bitboard.union(&border)).not(&bitboard);
+                let between = slide_moves(start_square, direction, &bitboard.add(&border)).remove(&bitboard);
                 result[start_square.to_usize()][final_square.to_usize()] = between;
                 result[final_square.to_usize()][start_square.to_usize()] = between;
             }
@@ -154,6 +157,29 @@ fn slide_move(square: &Square, slide_value: &i8, limit: &Bitboard) -> Bitboard {
     }
     return result;
 }
+
+fn init_pawn_attacks() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
+    let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
+    for square in Square::SQUARES.iter() {
+        result[Color::WHITE.to_usize()][square.to_usize()] = init_pawn_attack(&square, &Color::WHITE);
+        result[Color::BLACK.to_usize()][square.to_usize()] = init_pawn_attack(&square, &Color::BLACK);
+    }
+    return result;
+}
+
+fn init_pawn_attack(square: &Square, color: &Color) -> Bitboard {
+    let mut result = Bitboard::EMPTY;
+    let attack_left = square.offset(&PAWN_ATTACK_LEFT[color.to_usize()]);
+    if attack_left != None {
+        result.add(&Bitboard::from_square(&attack_left.unwrap()));
+    }
+    let attack_right = square.offset(&PAWN_ATTACK_RIGHT[color.to_usize()]);
+    if attack_right != None {
+        result.add(&Bitboard::from_square(&attack_right.unwrap()));
+    }
+    return result;
+}
+
 
 fn init_pawn_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
