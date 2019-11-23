@@ -1,22 +1,35 @@
+use std::mem::transmute;
+
 #[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug)]
-pub struct Color(pub i8);
+pub enum Color {
+    White = 0,
+    Black = 1,
+}
 
 impl Color {
     pub const NUM_COLORS: usize = 2;
-    pub const WHITE: Color = Color(0);
-    pub const BLACK: Color = Color(1);
 
-    pub const COLORS: [Color; Color::NUM_COLORS] = [Color::WHITE, Color::BLACK];
+    pub const COLORS: [Color; Color::NUM_COLORS] = [Color::White, Color::Black];
     pub const REPRESENTATION: [char; Color::NUM_COLORS] = ['w', 'b'];
 
     #[inline]
     pub fn to_u8(&self) -> u8 {
-        return self.0 as u8;
+        return *self as u8;
+    }
+
+    #[inline]
+    pub fn to_u32(&self) -> u32 {
+        return *self as u32;
+    }
+
+    #[inline]
+    pub fn to_i8(&self) -> i8 {
+        return *self as i8;
     }
 
     #[inline]
     pub fn to_usize(&self) -> usize {
-        return self.0 as usize;
+        return *self as usize;
     }
 
     #[inline]
@@ -25,22 +38,33 @@ impl Color {
     }
 
     #[inline]
-    pub fn from_char(ch: char) -> Option<Color> {
-        match ch {
-            'w' => Some(Color::WHITE),
-            'b' => Some(Color::BLACK),
+    pub fn unsafe_creation(value: i8) -> Color {
+        unsafe {
+            return transmute(value as u8);
+        }
+    }
+
+    pub fn from_char(c: char) -> Option<Color> {
+        match c {
+            'w' => Some(Color::White),
+            'b' => Some(Color::Black),
             _ => None,
         }
     }
 
     #[inline]
+    pub fn is_white(&self) -> bool {
+        *self == Color::White
+    }
+
+    #[inline]
     pub fn invert(&self) -> Color {
-        Color(self.0 ^ Color::BLACK.0)
+        Color::unsafe_creation(self.to_i8() ^ 1)
     }
 
     #[inline]
     pub fn multiplier(&self) -> i8 {
-        -2 * self.0 + 1
+        -2 * self.to_i8() + 1
     }
 }
 
@@ -50,20 +74,20 @@ mod test {
 
     #[test]
     fn to_char() {
-        assert_eq!(Color::WHITE.to_char(), 'w');
-        assert_eq!(Color::BLACK.to_char(), 'b');
+        assert_eq!(Color::White.to_char(), 'w');
+        assert_eq!(Color::Black.to_char(), 'b');
     }
 
     #[test]
     fn from_char() {
-        assert_eq!(Color::from_char('w').unwrap(), Color::WHITE);
-        assert_eq!(Color::from_char('b').unwrap(), Color::BLACK);
+        assert_eq!(Color::from_char('w').unwrap(), Color::White);
+        assert_eq!(Color::from_char('b').unwrap(), Color::Black);
         assert_eq!(Color::from_char('-'), None);
     }
 
     #[test]
     fn invert() {
-        assert_eq!(Color::WHITE.invert(), Color::BLACK);
-        assert_eq!(Color::BLACK.invert(), Color::WHITE);
+        assert_eq!(Color::White.invert(), Color::Black);
+        assert_eq!(Color::Black.invert(), Color::White);
     }
 }

@@ -9,7 +9,7 @@ impl Iterator for BitboardIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.bitboard.0 > 0 {
-            let square = Square(self.bitboard.0.trailing_zeros() as i8);
+            let square = self.bitboard.to_square();
             self.bitboard.0 &= self.bitboard.0 - 1;
             return Some(square);
         }
@@ -103,8 +103,38 @@ impl Bitboard {
     pub const H8: Bitboard = Bitboard(1u64 << 63);
 
     #[inline]
+    pub fn new(bitboard: u64) -> Self {
+        Bitboard(bitboard)
+    }
+
+    #[inline]
+    pub fn to_usize(&self) -> usize {
+        self.0 as usize
+    }
+
+    #[inline]
+    pub fn to_u64(&self) -> u64 {
+        self.0
+    }
+
+    #[inline]
     pub fn from_square(square: &Square) -> Self {
         Bitboard(1u64 << square.to_u64())
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0 == 0
+    }
+
+    #[inline]
+    pub fn is_not_empty(&self) -> bool {
+        self.0 != 0
+    }
+
+    #[inline]
+    pub fn one_element(&self) -> bool {
+        (self.0 & (self.0 - 1)) != self.0
     }
 
     #[inline]
@@ -113,33 +143,53 @@ impl Bitboard {
     }
 
     #[inline]
+    pub fn clear(&mut self) {
+        self.0 = 0;
+    }
+
+    #[inline]
     pub fn intersect(&self, other: &Self) -> Self {
         Bitboard(self.0 & other.0)
     }
 
     #[inline]
-    pub fn add(&self, other: &Self) -> Self {
+    pub fn union(&self, other: &Self) -> Self {
         Bitboard(self.0 | other.0)
     }
 
     #[inline]
-    pub fn remove(&self, other: &Self) -> Self {
+    pub fn difference(&self, other: &Self) -> Self {
         Bitboard(self.0 & !other.0)
     }
 
     #[inline]
-    pub fn invert(&self) -> Self {
+    pub fn invert(&self, other: &Self) -> Self {
+        Bitboard(self.0 ^ other.0)
+    }
+
+    #[inline]
+    pub fn not(&self) -> Self {
         Bitboard(!self.0)
     }
 
     #[inline]
-    pub fn add_square(&self, other: &Square) -> Self {
-        self.add(&Bitboard::from_square(other))
+    pub fn with_square(&self, square: &Square) -> Self {
+        self.union(&Bitboard::from_square(square))
     }
 
     #[inline]
     pub fn to_string(&self) -> String {
         format!("{:b}", self.0)
+    }
+
+    #[inline]
+    pub fn has(&self, other: &Bitboard) -> bool {
+        self.intersect(other).is_not_empty()
+    }
+
+    #[inline]
+    pub fn to_square(&self) -> Square {
+        Square(self.0.trailing_zeros() as i8)
     }
 
     pub fn iterator(self) -> BitboardIterator {

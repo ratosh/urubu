@@ -2,18 +2,16 @@
 pub struct PieceType(pub u8);
 
 impl PieceType {
-
     pub const NUM_PIECE_TYPES: usize = 7;
 
-    pub const TYPE_ARRAY: [PieceType; PieceType::NUM_PIECE_TYPES] = [
-        PieceType::NONE,
+    pub const PIECE_TYPES: [PieceType; 6] = [
         PieceType::PAWN,
         PieceType::KNIGHT,
         PieceType::BISHOP,
         PieceType::ROOK,
         PieceType::QUEEN,
         PieceType::KING];
-    pub const REPRESENTATION: [char; 7] = ['-', 'p', 'n', 'b', 'r', 'q', 'k'];
+    pub const REPRESENTATION: [char; PieceType::NUM_PIECE_TYPES] = ['-', 'p', 'n', 'b', 'r', 'q', 'k'];
 
     pub const NONE: PieceType = PieceType(0);
     pub const PAWN: PieceType = PieceType(1);
@@ -32,6 +30,15 @@ impl PieceType {
     pub fn to_char(&self) -> char {
         PieceType::REPRESENTATION[self.to_usize()]
     }
+
+    #[inline]
+    pub fn from_char(c: char) -> PieceType {
+        let lower_c = c.to_lowercase().nth(0).unwrap();
+        if let Some(index) = PieceType::REPRESENTATION.iter().position(|&s| s == lower_c) {
+            return PieceType(index as u8);
+        }
+        return PieceType::NONE;
+    }
 }
 
 #[cfg(test)]
@@ -47,6 +54,5 @@ mod test {
         assert_eq!(PieceType::QUEEN.to_char(), 'q');
         assert_eq!(PieceType::KING.to_char(), 'k');
     }
-
 }
 

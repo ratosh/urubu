@@ -1,29 +1,29 @@
 use std::convert::From;
 
-#[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
+#[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug)]
 pub struct File(pub i8);
 
 impl File {
     pub const NUM_FILES: usize = 8;
 
-    pub const A: File = File(0);
-    pub const B: File = File(1);
-    pub const C: File = File(2);
-    pub const D: File = File(3);
-    pub const E: File = File(4);
-    pub const F: File = File(5);
-    pub const G: File = File(6);
-    pub const H: File = File(7);
+    pub const FILE_A: File = File(0);
+    pub const FILE_B: File = File(1);
+    pub const FILE_C: File = File(2);
+    pub const FILE_D: File = File(3);
+    pub const FILE_E: File = File(4);
+    pub const FILE_F: File = File(5);
+    pub const FILE_G: File = File(6);
+    pub const FILE_H: File = File(7);
 
     pub const FILES: [File; File::NUM_FILES] = [
-        File::A,
-        File::B,
-        File::C,
-        File::D,
-        File::E,
-        File::F,
-        File::G,
-        File::H];
+        File::FILE_A,
+        File::FILE_B,
+        File::FILE_C,
+        File::FILE_D,
+        File::FILE_E,
+        File::FILE_F,
+        File::FILE_G,
+        File::FILE_H];
 
     pub const REPRESENTATION: [char; File::NUM_FILES] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
@@ -47,7 +47,7 @@ impl File {
 
     #[inline]
     pub fn invert(&self) -> File {
-        File(self.0 ^ File::H.0)
+        File(self.0 ^ File::FILE_H.0)
     }
 
     #[inline]
@@ -62,26 +62,26 @@ mod test {
 
     #[test]
     fn to_char() {
-        assert_eq!(File::A.to_char(), 'a');
-        assert_eq!(File::B.to_char(), 'b');
-        assert_eq!(File::C.to_char(), 'c');
-        assert_eq!(File::D.to_char(), 'd');
-        assert_eq!(File::E.to_char(), 'e');
-        assert_eq!(File::F.to_char(), 'f');
-        assert_eq!(File::G.to_char(), 'g');
-        assert_eq!(File::H.to_char(), 'h');
+        assert_eq!(File::FILE_A.to_char(), 'a');
+        assert_eq!(File::FILE_B.to_char(), 'b');
+        assert_eq!(File::FILE_C.to_char(), 'c');
+        assert_eq!(File::FILE_D.to_char(), 'd');
+        assert_eq!(File::FILE_E.to_char(), 'e');
+        assert_eq!(File::FILE_F.to_char(), 'f');
+        assert_eq!(File::FILE_G.to_char(), 'g');
+        assert_eq!(File::FILE_H.to_char(), 'h');
     }
 
     #[test]
     fn invert() {
-        assert_eq!(File::A.invert(), File::H);
-        assert_eq!(File::B.invert(), File::G);
-        assert_eq!(File::C.invert(), File::F);
-        assert_eq!(File::D.invert(), File::E);
-        assert_eq!(File::E.invert(), File::D);
-        assert_eq!(File::F.invert(), File::C);
-        assert_eq!(File::G.invert(), File::B);
-        assert_eq!(File::H.invert(), File::A);
+        assert_eq!(File::FILE_A.invert(), File::FILE_H);
+        assert_eq!(File::FILE_B.invert(), File::FILE_G);
+        assert_eq!(File::FILE_C.invert(), File::FILE_F);
+        assert_eq!(File::FILE_D.invert(), File::FILE_E);
+        assert_eq!(File::FILE_E.invert(), File::FILE_D);
+        assert_eq!(File::FILE_F.invert(), File::FILE_C);
+        assert_eq!(File::FILE_G.invert(), File::FILE_B);
+        assert_eq!(File::FILE_H.invert(), File::FILE_A);
     }
 }
 
