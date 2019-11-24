@@ -186,7 +186,7 @@ impl Square {
 
     #[inline]
     pub fn from_file_rank(file: &File, rank: &Rank) -> Square {
-        Square(file.0 << 3 + rank.0)
+        Square(rank.0.wrapping_shl(3) + file.0)
     }
 
     #[inline]

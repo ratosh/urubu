@@ -6,6 +6,9 @@ use crate::types::square::Square;
 pub struct BoardMove(pub u16);
 
 impl BoardMove {
+    pub const NONE :BoardMove = BoardMove(0);
+    pub const NULL :BoardMove = BoardMove(0xFFFF);
+
     pub const TO_SHIFT: u16 = 6;
     pub const MOVE_TYPE_SHIFT: u16 = 12;
 

@@ -23,6 +23,11 @@ impl Color {
     }
 
     #[inline]
+    pub fn to_u16(&self) -> u16 {
+        return *self as u16;
+    }
+
+    #[inline]
     pub fn to_i8(&self) -> i8 {
         return *self as i8;
     }
@@ -50,6 +55,11 @@ impl Color {
             'b' => Some(Color::Black),
             _ => None,
         }
+    }
+
+
+    pub fn from_string(st: &str) -> Option<Color> {
+        Color::from_char(st.chars().next().unwrap())
     }
 
     #[inline]

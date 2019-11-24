@@ -7,20 +7,29 @@ use crate::types::square::Square;
 
 #[derive(Clone)]
 pub struct AttackInfo {
-    pub attack_bitboard: [[Bitboard; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
-    pub piece_movement: [Bitboard; Square::NUM_SQUARES],
+    attack_bitboard: [[Bitboard; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
+    piece_movement: [Bitboard; Square::NUM_SQUARES],
 
-    pub movement_mask: [Bitboard; Color::NUM_COLORS],
+    movement_mask: [Bitboard; Color::NUM_COLORS],
 
-    pub zobrist_key: ZobristKey,
+    zobrist_key: ZobristKey,
 }
 
 impl AttackInfo {
+    pub fn new() -> Self {
+        AttackInfo {
+            attack_bitboard: [[Bitboard::EMPTY; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
+            piece_movement: [Bitboard::EMPTY; Square::NUM_SQUARES],
+            movement_mask: [Bitboard::EMPTY; Color::NUM_COLORS],
+            zobrist_key: ZobristKey::new(),
+        }
+    }
+
     pub fn update(&mut self, board: &Board) {
-        if board.board_state.zkey == self.zobrist_key {
+        if board.zkey == self.zobrist_key {
             return;
         }
-        self.zobrist_key = board.board_state.zkey;
+        self.zobrist_key = board.zkey;
         for square in Square::SQUARES.iter() {
             self.piece_movement[square.to_usize()] = Bitboard::EMPTY;
         }
@@ -34,7 +43,7 @@ impl AttackInfo {
             self.attack_bitboard[color.to_usize()][piece_type.to_usize()] = Bitboard::EMPTY;
         }
 
-        let check_bitboard = board.board_state.check_bitboard;
+        let check_bitboard = board.check_bitboard;
 
         let mask = if check_bitboard.is_empty() {
             Bitboard::ALL
@@ -66,14 +75,14 @@ impl AttackInfo {
 
     fn pawn_attacks(&mut self, board: &Board, color: &Color, mask: &Bitboard) {
         let unpinned_pawns = board.piece_bitboard(color, &PieceType::PAWN)
-            .intersect(&board.board_state.pinned_bitboard.not());
+            .intersect(&board.pinned_bitboard.not());
         self.attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
             unpinned_pawns.pawn_attacks_left(color)
                 .union(&unpinned_pawns.pawn_attacks_right(color))
                 .intersect(mask);
 
         let pinned_pawns = board.piece_bitboard(color, &PieceType::PAWN)
-            .intersect(&board.board_state.pinned_bitboard);
+            .intersect(&board.pinned_bitboard);
         let king_square = board.king_square(color);
 
         for square in pinned_pawns.iterator() {
@@ -89,7 +98,7 @@ impl AttackInfo {
 
     fn knight_moves(&mut self, board: &Board, color: &Color, mask: &Bitboard) {
         let unpinned_knights = board.piece_bitboard(color, &PieceType::KNIGHT)
-            .intersect(&board.board_state.pinned_bitboard.not());
+            .intersect(&board.pinned_bitboard.not());
 
         for square in unpinned_knights.iterator() {
             let bitboard = square.knight_moves().intersect(mask);
@@ -104,7 +113,7 @@ impl AttackInfo {
         for square in bishops.iterator() {
             let from_bitboard = Bitboard::from_square(&square);
             let bitboard =
-                if from_bitboard.intersect(&board.board_state.pinned_bitboard).is_not_empty() {
+                if from_bitboard.intersect(&board.pinned_bitboard).is_not_empty() {
                     square.bishop_moves(&board.game_bitboard())
                         .intersect(mask)
                         .intersect(&king_square.pinned_mask(&square))
@@ -122,7 +131,7 @@ impl AttackInfo {
         for square in rooks.iterator() {
             let from_bitboard = Bitboard::from_square(&square);
             let bitboard =
-                if from_bitboard.intersect(&board.board_state.pinned_bitboard).is_not_empty() {
+                if from_bitboard.intersect(&board.pinned_bitboard).is_not_empty() {
                     square.rook_moves(&board.game_bitboard())
                         .intersect(mask)
                         .intersect(&king_square.pinned_mask(&square))
@@ -141,7 +150,7 @@ impl AttackInfo {
         for square in queens.iterator() {
             let from_bitboard = Bitboard::from_square(&square);
             let bitboard =
-                if from_bitboard.intersect(&board.board_state.pinned_bitboard).is_not_empty() {
+                if from_bitboard.intersect(&board.pinned_bitboard).is_not_empty() {
                     square.bishop_moves(&board.game_bitboard())
                         .union(&square.rook_moves(&board.game_bitboard()))
                         .intersect(mask)
@@ -167,6 +176,14 @@ impl AttackInfo {
     fn register_bitboard(&mut self, color: &Color, piece_type: &PieceType, square: &Square, bitboard: &Bitboard) {
         self.piece_movement[square.to_usize()] = *bitboard;
         self.attack_bitboard[color.to_usize()][piece_type.to_usize()] =
-            self.attack_bitboard[color.to_usize()][piece_type.to_usize()].union(bitboard);
+            self.attack_bitboard(&color, piece_type).union(bitboard);
+    }
+
+    pub fn movement_mask(&self, color: &Color) -> Bitboard {
+        self.movement_mask[color.to_usize()]
+    }
+
+    pub fn attack_bitboard(&self, color: &Color, piece_type: &PieceType) -> Bitboard {
+        self.attack_bitboard[color.to_usize()][piece_type.to_usize()]
     }
 }

@@ -82,6 +82,16 @@ impl CastlingIndex {
     pub fn from_color_side(color: &Color, castling_side: &CastlingSide) -> Self {
         CastlingIndex::unsafe_creation(castling_side.to_u32() + 2 * color.to_u32())
     }
+
+    #[inline]
+    pub fn square_king_to(&self) -> Square {
+        CastlingIndex::SQUARE_KING_TO[self.to_usize()]
+    }
+
+    #[inline]
+    pub fn square_rook_to(&self) -> Square {
+        CastlingIndex::SQUARE_ROOK_TO[self.to_usize()]
+    }
 }
 
 impl CastlingRights {
@@ -121,7 +131,7 @@ impl CastlingRights {
     }
 
     #[inline]
-    pub fn from_string(st: String) -> Self {
+    pub fn from_string(st: &str) -> Self {
         let mut result = CastlingRights::NO_CASTLING;
         for c in st.chars() {
             if let Some(index) = CastlingIndex::from_char(c) {

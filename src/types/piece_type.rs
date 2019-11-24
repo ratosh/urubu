@@ -1,3 +1,5 @@
+use crate::types::color::Color;
+
 #[derive(PartialEq, PartialOrd, Copy, Clone, Debug)]
 pub struct PieceType(pub u8);
 
@@ -38,6 +40,14 @@ impl PieceType {
             return PieceType(index as u8);
         }
         return PieceType::NONE;
+    }
+
+    pub fn piece_color(c: char) -> Color {
+        if c.is_uppercase() {
+            Color::White
+        } else {
+            Color::Black
+        }
     }
 }
 
