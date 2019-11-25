@@ -36,6 +36,52 @@ pub struct Board {
 
 impl Board {
     #[inline]
+    pub fn empty() -> Self {
+        let mut result = Self {
+            zkey: ZobristKey::new(),
+            zkey_pawn: ZobristKey::new(),
+            castling_rights: CastlingRights::NO_CASTLING,
+            ep_square: None,
+            color_bitboard: [
+                Bitboard(0),
+                Bitboard(0),
+            ],
+            piece_bitboard: [
+                Bitboard(0),
+                Bitboard(0),
+                Bitboard(0),
+                Bitboard(0),
+                Bitboard(0),
+                Bitboard(0),
+                Bitboard(0),
+            ],
+            color_to_move: Color::White,
+            move_number: 0,
+            rule_50: 0,
+            king_square: [Square::E1, Square::E8],
+
+            initial_rook_square: [Square::H1, Square::A1, Square::H8, Square::A8],
+            castling_rights_masks: [CastlingRights::NO_CASTLING; Square::NUM_SQUARES],
+
+            check_bitboard: Bitboard::EMPTY,
+            pinned_bitboard: Bitboard::EMPTY,
+            danger_bitboard: [[Bitboard::EMPTY; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
+        };
+
+        result.castling_rights_masks[result.king_square(&Color::White).to_usize()] = CastlingRights::WHITE_RIGHTS;
+        result.castling_rights_masks[result.king_square(&Color::Black).to_usize()] = CastlingRights::BLACK_RIGHTS;
+
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::WhiteA.to_usize()].to_usize()] = CastlingRights::WHITE_OO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::WhiteH.to_usize()].to_usize()] = CastlingRights::WHITE_OOO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] = CastlingRights::BLACK_OO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OOO;
+
+        result.compute_zobrist();
+        result.first_pass();
+        return result;
+    }
+
+    #[inline]
     pub fn default() -> Self {
         let mut result = Self {
             zkey: ZobristKey::new(),
@@ -79,6 +125,12 @@ impl Board {
         result.compute_zobrist();
         result.first_pass();
         return result;
+    }
+
+    pub fn compute_king_square(&mut self) {
+        for color in Color::COLORS.iter() {
+            self.king_square[color.to_usize()] = self.piece_bitboard(&color, &PieceType::KING).to_square();
+        }
     }
 
     #[inline]
@@ -172,6 +224,8 @@ impl Board {
     #[inline]
     fn remove_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
         let bitboard = Bitboard::from_square(square);
+        self.piece_bitboard[PieceType::NONE.to_usize()] =
+            self.piece_bitboard[PieceType::NONE.to_usize()].difference(&bitboard);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].difference(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -181,6 +235,8 @@ impl Board {
     #[inline]
     pub fn add_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
         let bitboard = Bitboard::from_square(square);
+        self.piece_bitboard[PieceType::NONE.to_usize()] =
+            self.piece_bitboard[PieceType::NONE.to_usize()].union(&bitboard);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].union(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -191,6 +247,8 @@ impl Board {
     fn move_piece(&mut self, color: &Color, piece_type: &PieceType, square_from: &Square, square_to: &Square) {
         let bitboard = Bitboard::from_square(square_from)
             .union(&Bitboard::from_square(square_to));
+        self.piece_bitboard[PieceType::NONE.to_usize()] =
+            self.piece_bitboard[PieceType::NONE.to_usize()].invert(&bitboard);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].invert(&bitboard);
         self.color_bitboard[color.to_usize()] =

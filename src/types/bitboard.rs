@@ -179,7 +179,7 @@ impl Bitboard {
 
     #[inline]
     pub fn to_string(&self) -> String {
-        format!("{:b}", self.0)
+        format!("{:#066b}", self.0)
     }
 
     #[inline]

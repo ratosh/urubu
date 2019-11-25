@@ -40,8 +40,8 @@ pub struct CastlingRightsIterator {
 
 impl CastlingIndex {
     pub const NUM_INDEXES: usize = 4;
-    pub const SQUARE_ROOK_TO: [Square; CastlingIndex::NUM_INDEXES] = [Square::G1, Square::C1, Square::G8, Square::C8];
-    pub const SQUARE_KING_TO: [Square; CastlingIndex::NUM_INDEXES] = [Square::F1, Square::D1, Square::F8, Square::D8];
+    pub const SQUARE_ROOK_TO: [Square; CastlingIndex::NUM_INDEXES] = [Square::F1, Square::D1, Square::F8, Square::D8];
+    pub const SQUARE_KING_TO: [Square; CastlingIndex::NUM_INDEXES] = [Square::G1, Square::C1, Square::G8, Square::C8];
 
     const REPRESENTATION: [char; CastlingIndex::NUM_INDEXES] = ['K', 'Q', 'k', 'q'];
 

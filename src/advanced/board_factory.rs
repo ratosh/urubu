@@ -11,7 +11,7 @@ impl Board {
     const SPLITTER: char = '/';
 
     pub fn from_fen(fen: &str) -> Self {
-        let mut result = Board::default();
+        let mut result = Board::empty();
         let mut file:usize = File::FILE_A.to_usize();
         let mut rank:usize = Rank::RANK_8.to_usize();
 
@@ -52,6 +52,7 @@ impl Board {
         result.castling_rights = castling_rights;
         result.ep_square = ep_square;
 
+        result.compute_king_square();
         result.compute_zobrist();
         result.initial_pass();
 

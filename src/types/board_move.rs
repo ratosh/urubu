@@ -55,7 +55,7 @@ impl BoardMove {
         result.push_str(&self.square_from().to_string());
         result.push_str(&self.square_to().to_string());
         let promoted_piece = self.move_type().promoted_piece_type();
-        if promoted_piece.0 > PieceType::PAWN.0 {
+        if promoted_piece != PieceType::NONE {
             result.push(promoted_piece.to_char());
         }
         return result;
