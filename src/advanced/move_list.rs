@@ -38,7 +38,7 @@ impl MoveList {
 
     pub fn next(&mut self) -> BoardMove {
         let board_move = self.move_list[self.next_to_move[self.current_ply]];
-        self.current_ply += 1;
+        self.next_to_move[self.current_ply] += 1;
         return board_move;
     }
 
@@ -67,6 +67,17 @@ mod test {
         let board_move = BoardMove::build_normal(&Square::A1, &Square::A2);
         move_list.add_move(board_move);
         assert_eq!(move_list.next(), board_move)
+    }
+
+    #[test]
+    fn double_add_next() {
+        let mut move_list = MoveList::new();
+        let board_move1 = BoardMove::build_normal(&Square::A1, &Square::A2);
+        let board_move2 = BoardMove::build_normal(&Square::A2, &Square::A1);
+        move_list.add_move(board_move1);
+        move_list.add_move(board_move2);
+        assert_eq!(move_list.next(), board_move1);
+        assert_eq!(move_list.next(), board_move2);
     }
 
     #[test]

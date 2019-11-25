@@ -6,7 +6,8 @@ pub struct PieceType(pub u8);
 impl PieceType {
     pub const NUM_PIECE_TYPES: usize = 7;
 
-    pub const PIECE_TYPES: [PieceType; 6] = [
+    pub const PIECE_TYPES: [PieceType; PieceType::NUM_PIECE_TYPES] = [
+        PieceType::NONE,
         PieceType::PAWN,
         PieceType::KNIGHT,
         PieceType::BISHOP,

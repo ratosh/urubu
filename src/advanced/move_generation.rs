@@ -4,6 +4,8 @@ use crate::advanced::move_list::MoveList;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
 use crate::types::piece_type::PieceType;
+use crate::types::square::Square;
+use crate::types::color::Color;
 
 #[allow(dead_code)]
 impl MoveList {
@@ -15,14 +17,14 @@ impl MoveList {
         }
 
         let mask = attack_info.movement_mask(&our_color).intersect(&board.empty_bitboard());
-//        if mask.is_not_empty() {
+        if mask.is_not_empty() {
 //            self.generate_quiet_pawn_moves(board, attack_info, mask);
-//            self.generate_quiet_moves(board, attack_info, PieceType::KNIGHT, mask);
-//            self.generate_quiet_moves(board, attack_info, PieceType::BISHOP, mask);
-//            self.generate_quiet_moves(board, attack_info, PieceType::ROOK, mask);
-//            self.generate_quiet_moves(board, attack_info, PieceType::QUEEN, mask);
-//        }
-//        self.generate_quiet_moves(board, attack_info, PieceType::KING, board.empty_bitboard());
+            self.generate_moves(board, attack_info, &PieceType::KNIGHT, &mask);
+            self.generate_moves(board, attack_info, &PieceType::BISHOP, &mask);
+            self.generate_moves(board, attack_info, &PieceType::ROOK, &mask);
+            self.generate_moves(board, attack_info, &PieceType::QUEEN, &mask);
+        }
+        self.generate_moves(board, attack_info, &PieceType::KING, &board.empty_bitboard());
     }
 
     fn generate_castling_moves(&mut self, board: &Board, attack_info: &AttackInfo) {
@@ -30,9 +32,7 @@ impl MoveList {
         let their_color = our_color.invert();
         let possible_castling = board.castling_rights.color_filter(&our_color);
         let king_square = board.king_square(&our_color);
-        println!("possible {}", possible_castling.to_string());
         for castling_index in possible_castling.iterator() {
-            println!("index {}", castling_index.to_char());
             let king_to = castling_index.square_king_to();
             let king_path = king_square.between(&king_to)
                 .union(&Bitboard::from_square(&king_to));
@@ -40,19 +40,32 @@ impl MoveList {
             let rook_from = board.initial_rook_square(&castling_index);
             let rook_to = castling_index.square_rook_to();
             let rook_path = rook_from.between(&rook_to);
-            println!("king path {}", king_path.to_string());
-            println!("rook path {}", rook_path.to_string());
-            println!("game bitboard {}", board.game_bitboard().to_string());
-            println!("attack bitboard {}", attack_info.attack_bitboard(&their_color, &PieceType::NONE).to_string());
-
-            println!("p1 {}", king_path.union(&rook_path).intersect(&board.game_bitboard()).to_string());
-            println!("p2 {}", king_path.intersect(&attack_info.attack_bitboard(&their_color, &PieceType::NONE)).to_string());
 
             if king_path.union(&rook_path).intersect(&board.game_bitboard())
                 .union(&king_path.intersect(&attack_info.attack_bitboard(&their_color, &PieceType::NONE))).is_empty() {
                 let board_move = BoardMove::build_castling(&king_square, &king_to);
                 self.add_move(board_move);
             }
+        }
+    }
+
+    fn generate_moves(&mut self, board: &Board, attack_info: &AttackInfo, piece_type: &PieceType, mask: &Bitboard) {
+        let color = board.color_to_move;
+        let masked_move = mask.intersect(&attack_info.attack_bitboard(&color, piece_type));
+        if masked_move.is_empty() {
+            return
+        }
+        for square in board.piece_bitboard(&color, piece_type).iterator() {
+            self.generate_moves_from_square(&color, &square,
+                &attack_info.movement(&square).intersect(mask)
+            )
+        }
+    }
+
+    fn generate_moves_from_square(&mut self, color: &Color, square: &Square, bitboard: &Bitboard) {
+        for square_to in bitboard.iterator() {
+            let board_move = BoardMove::build_normal(square, &square_to);
+            self.add_move(board_move);
         }
     }
 

@@ -33,6 +33,11 @@ impl AttackInfo {
         for square in Square::SQUARES.iter() {
             self.piece_movement[square.to_usize()] = Bitboard::EMPTY;
         }
+        for color in Color::COLORS.iter() {
+            for piece_type in PieceType::PIECE_TYPES.iter() {
+                self.attack_bitboard[color.to_usize()][piece_type.to_usize()] = Bitboard::EMPTY;
+            }
+        }
 
         self.update_color(board, &Color::White);
         self.update_color(board, &Color::Black);
@@ -54,6 +59,7 @@ impl AttackInfo {
         } else {
             Bitboard::EMPTY
         };
+        self.movement_mask[color.to_usize()] = mask;
 
         if mask.is_not_empty() {
             self.pawn_attacks(board, color, &mask);
@@ -139,7 +145,7 @@ impl AttackInfo {
                     square.rook_moves(&board.game_bitboard())
                         .intersect(mask)
                 };
-            self.register_bitboard(color, &PieceType::BISHOP, &square, &bitboard);
+            self.register_bitboard(color, &PieceType::ROOK, &square, &bitboard);
         }
     }
 
@@ -160,7 +166,7 @@ impl AttackInfo {
                         .union(&square.rook_moves(&board.game_bitboard()))
                         .intersect(mask)
                 };
-            self.register_bitboard(color, &PieceType::BISHOP, &square, &bitboard);
+            self.register_bitboard(color, &PieceType::QUEEN, &square, &bitboard);
         }
     }
 
@@ -185,5 +191,9 @@ impl AttackInfo {
 
     pub fn attack_bitboard(&self, color: &Color, piece_type: &PieceType) -> Bitboard {
         self.attack_bitboard[color.to_usize()][piece_type.to_usize()]
+    }
+
+    pub fn movement(&self, square: &Square) -> Bitboard {
+        self.piece_movement[square.to_usize()]
     }
 }

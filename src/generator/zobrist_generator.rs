@@ -30,6 +30,9 @@ fn init_zobrist_psqt(random: &mut Random) -> [[[u64; Square::NUM_SQUARES];PieceT
     let mut result = [[[0 as u64; Square::NUM_SQUARES];PieceType::NUM_PIECE_TYPES];Color::NUM_COLORS];
     for color in Color::COLORS.iter() {
         for piece_type in PieceType::PIECE_TYPES.iter() {
+            if piece_type == &PieceType::NONE {
+                continue;
+            }
             for sq in Square::SQUARES.iter() {
                 result[color.to_usize()][piece_type.to_usize()][sq.to_usize()] = random.next();
             }
