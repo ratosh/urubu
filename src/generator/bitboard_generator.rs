@@ -134,11 +134,11 @@ fn init_neighbour() -> [Bitboard; Square::NUM_SQUARES] {
         };
 
         let mut possible_neighbours = Bitboard::EMPTY;
-        let west_square = square.move_towards(WEST);
+        let west_square = square.offset(WEST);
         if west_square.is_some() {
             possible_neighbours = Bitboard::from_square(&west_square.unwrap());
         }
-        let east_square = square.move_towards(EAST);
+        let east_square = square.offset(EAST);
         if east_square.is_some() {
             possible_neighbours = possible_neighbours.union(&Bitboard::from_square(&east_square.unwrap()));
         }
@@ -173,7 +173,7 @@ fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
             let mut moving_square: Option<Square> = Some(*start_square);
             let mut bitboard = Bitboard::from_square(&start_square);
             while bitboard.intersect(&border) == Bitboard::EMPTY {
-                moving_square = moving_square.unwrap().offset(&direction[0 as usize]);
+                moving_square = moving_square.unwrap().offset(direction[0 as usize]);
                 if moving_square.is_none() {
                     break;
                 }
@@ -191,13 +191,13 @@ fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
 fn slide_moves(square: &Square, slide_values: &[i8], limit: &Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     for slide in slide_values {
-        let moves = slide_move(square, slide, limit);
+        let moves = slide_move(square, *slide, limit);
         result = result.union(&moves);
     }
     return result;
 }
 
-fn slide_move(square: &Square, slide_value: &i8, limit: &Bitboard) -> Bitboard {
+fn slide_move(square: &Square, slide_value: i8, limit: &Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     let mut old_square = *square;
     while let Some(new_square) = old_square.offset(slide_value) {
@@ -226,11 +226,11 @@ fn init_pawn_attacks() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
 
 fn init_pawn_attack(square: &Square, color: &Color) -> Bitboard {
     let mut result = Bitboard::EMPTY;
-    let attack_left = square.offset(&PAWN_ATTACK_LEFT[color.to_usize()]);
+    let attack_left = square.offset(PAWN_ATTACK_LEFT[color.to_usize()]);
     if attack_left != None {
         result = result.union(&Bitboard::from_square(&attack_left.unwrap()));
     }
-    let attack_right = square.offset(&PAWN_ATTACK_RIGHT[color.to_usize()]);
+    let attack_right = square.offset(PAWN_ATTACK_RIGHT[color.to_usize()]);
     if attack_right != None {
         result = result.union(&Bitboard::from_square(&attack_right.unwrap()));
     }
@@ -247,7 +247,7 @@ fn init_pawn_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
 }
 
 fn init_pawn_move(square: &Square, color: &Color) -> Bitboard {
-    let forward = square.offset(&PAWN_FORWARD[color.to_usize()]);
+    let forward = square.offset(PAWN_FORWARD[color.to_usize()]);
     if forward != None {
         return Bitboard::from_square(&forward.unwrap());
     }
@@ -265,7 +265,7 @@ fn init_pawn_double_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLO
 
 fn init_pawn_double_move(square: &Square, color: &Color) -> Bitboard {
     if square.to_rank().relative(&color) == Rank::RANK_2 {
-        let forward = square.offset(&(PAWN_FORWARD[color.to_usize()] * 2));
+        let forward = square.offset(PAWN_FORWARD[color.to_usize()] * 2);
         if forward != None {
             return Bitboard::from_square(&forward.unwrap());
         }
@@ -291,7 +291,7 @@ fn init_pinned_mask() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] 
             let mut bitboard = Bitboard::from_square(&start_square);
             let pinned_mask = slide_moves(start_square, direction, &border);
             while bitboard.intersect(&border) == Bitboard::EMPTY {
-                moving_square = moving_square.unwrap().offset(&direction[0 as usize]);
+                moving_square = moving_square.unwrap().offset(direction[0 as usize]);
                 if moving_square.is_none() {
                     break;
                 }

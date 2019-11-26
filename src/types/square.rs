@@ -241,21 +241,13 @@ impl Square {
         self.0 >= 0 && self.0 < Square::H8.0
     }
 
-    pub fn move_towards(&self, offset: i8) -> Option<Square> {
+    pub fn offset(&self, offset: i8) -> Option<Self> {
         let final_square = Square(self.0 + offset);
         if final_square.is_valid() {
             Some(final_square)
         } else {
             None
         }
-    }
-
-    pub fn offset(&self, value: &i8) -> Option<Self> {
-        let result = self.0 + *value;
-        if result >= Square::A1.0 && result <= Square::H8.0 {
-            return Some(Square(result));
-        }
-        None
     }
 }
 

@@ -1,4 +1,5 @@
 use crate::types::square::Square;
+use crate::types::color::Color;
 
 pub struct BitboardIterator {
     bitboard: Bitboard
@@ -23,12 +24,15 @@ pub struct Bitboard(pub u64);
 impl Bitboard {
     pub const ALL: Bitboard = Bitboard(0xFFFFFFFFFFFFFFFFu64);
     pub const EMPTY: Bitboard = Bitboard(0u64);
+    pub const PROMOTION: [Bitboard; Color::NUM_COLORS] = [Bitboard::Rank_2, Bitboard::Rank_7];
 
-    pub const FILE_A: Bitboard = Bitboard(0xFFu64);
-    pub const FILE_H: Bitboard = Bitboard(0xFFu64 << 56);
+    pub const FILE_A: Bitboard = Bitboard(0x101010101010101u64);
+    pub const FILE_H: Bitboard = Bitboard(0x8080808080808080u64);
 
-    pub const RANK_1: Bitboard = Bitboard(0xFFu64 << 56);
-    pub const RANK_8: Bitboard = Bitboard(0xFFu64 << 56);
+    pub const RANK_1: Bitboard = Bitboard(0xFFu64);
+    pub const RANK_2: Bitboard = Bitboard(0xFF00u64);
+    pub const RANK_7: Bitboard = Bitboard(0xFF000000000000u64);
+    pub const RANK_8: Bitboard = Bitboard(0xFF00000000000000u64);
 
     pub const A1: Bitboard = Bitboard(1u64 << 0);
     pub const B1: Bitboard = Bitboard(1u64 << 1);

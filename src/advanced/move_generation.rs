@@ -3,9 +3,11 @@ use crate::advanced::board::Board;
 use crate::advanced::move_list::MoveList;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
-use crate::types::piece_type::PieceType;
-use crate::types::square::Square;
 use crate::types::color::Color;
+use crate::types::file::File;
+use crate::types::piece_type::PieceType;
+use crate::types::rank::Rank;
+use crate::types::square::Square;
 
 #[allow(dead_code)]
 impl MoveList {
@@ -18,7 +20,7 @@ impl MoveList {
 
         let mask = attack_info.movement_mask(&our_color).intersect(&board.empty_bitboard());
         if mask.is_not_empty() {
-//            self.generate_quiet_pawn_moves(board, attack_info, mask);
+            self.generate_quiet_pawn_moves(board, &mask);
             self.generate_moves(board, attack_info, &PieceType::KNIGHT, &mask);
             self.generate_moves(board, attack_info, &PieceType::BISHOP, &mask);
             self.generate_moves(board, attack_info, &PieceType::ROOK, &mask);
@@ -49,16 +51,39 @@ impl MoveList {
         }
     }
 
+    fn generate_quiet_pawn_moves(&mut self, board: &Board, mask: &Bitboard) {
+        let color = board.color_to_move;
+        let their_color = board.color_to_move.invert();
+        let pawn_bitboard = board.piece_bitboard(&color, &PieceType::PAWN)
+            .intersect(&board.empty_bitboard().pawn_forward(&their_color))
+            .difference(&Bitboard::PROMOTION[color.to_usize()]);
+
+        for square in pawn_bitboard.iterator() {
+
+
+            let move_bitboard = if Bitboard::from_square(&square).intersect(&board.pinned_bitboard).is_not_empty() {
+                square.pawn_move(&color)
+                    .union(&square.pawn_double_move(&color))
+                    .intersect(mask)
+                    .intersect(&board.king_square(&color).between(&square))
+            } else {
+                square.pawn_move(&color)
+                    .union(&square.pawn_double_move(&color))
+                    .intersect(mask)
+            };
+
+            self.generate_moves_from_square(&color, &square, &move_bitboard);
+        }
+    }
+
     fn generate_moves(&mut self, board: &Board, attack_info: &AttackInfo, piece_type: &PieceType, mask: &Bitboard) {
         let color = board.color_to_move;
         let masked_move = mask.intersect(&attack_info.attack_bitboard(&color, piece_type));
         if masked_move.is_empty() {
-            return
+            return;
         }
         for square in board.piece_bitboard(&color, piece_type).iterator() {
-            self.generate_moves_from_square(&color, &square,
-                &attack_info.movement(&square).intersect(mask)
-            )
+            self.generate_moves_from_square(&color, &square, &attack_info.movement(&square).intersect(&mask))
         }
     }
 
@@ -83,6 +108,7 @@ mod test {
         let mut move_list = MoveList::new();
         let mut attack_info = AttackInfo::new();
         move_list.generate_quiets(&board, &mut attack_info);
+        move_list.generate_noisy(&board, &mut attack_info);
         let mut legal_moves = 0;
         while move_list.has_next() {
             let board_move = move_list.next();
@@ -92,6 +118,18 @@ mod test {
             }
         }
         return legal_moves;
+    }
+
+    #[test]
+    fn pawn_move() {
+        let legal_moves = count_moves("5k2/8/8/8/3P4/8/8/5K2 w - -");
+        assert_eq!(legal_moves, 6);
+    }
+
+    #[test]
+    fn pawn_double_move() {
+        let legal_moves = count_moves("5k2/8/8/8/8/8/3P4/5K2 w - -");
+        assert_eq!(legal_moves, 7);
     }
 
     #[test]
