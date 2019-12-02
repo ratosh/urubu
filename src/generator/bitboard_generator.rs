@@ -101,7 +101,7 @@ fn init_pseudo_bishop() -> [Bitboard; Square::NUM_SQUARES] {
 fn init_pseudo_rook() -> [Bitboard; Square::NUM_SQUARES] {
     let mut res = [Bitboard::EMPTY; Square::NUM_SQUARES];
     for square in Square::SQUARES.iter() {
-        res[square.to_usize()] = slide_moves(square, &ROOK_MOVE_STEPS, &Bitboard::ALL);
+        res[square.to_usize()] = slide_moves(square, &ROOK_MOVE_STEPS, &Bitboard::EMPTY);
     }
     res
 }

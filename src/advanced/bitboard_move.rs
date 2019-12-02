@@ -170,13 +170,15 @@ mod test {
 
     #[test]
     fn bishop_move() {
-        assert_eq!(Square::A1.bishop_moves(&Bitboard::EMPTY), Bitboard::B2.union(&Bitboard::C3)
+        assert_eq!(Square::A1.pseudo_bishop_moves(), Bitboard::B2.union(&Bitboard::C3)
             .union(&Bitboard::D4).union(&Bitboard::E5).union(&Bitboard::F6).union(&Bitboard::G7)
             .union(&Bitboard::H8));
+        assert_eq!(Square::A1.bishop_moves(&Bitboard::EMPTY), Square::A1.pseudo_bishop_moves());
     }
 
     #[test]
     fn rook_move() {
+        assert_eq!(Square::A1.rook_moves(&Bitboard::EMPTY), Square::A1.pseudo_rook_moves());
         assert_eq!(Square::A1.rook_moves(&Bitboard::EMPTY), Bitboard::A2.union(&Bitboard::A3)
             .union(&Bitboard::A4).union(&Bitboard::A5).union(&Bitboard::A6).union(&Bitboard::A7)
             .union(&Bitboard::A8).union(&Bitboard::B1).union(&Bitboard::C1).union(&Bitboard::D1)

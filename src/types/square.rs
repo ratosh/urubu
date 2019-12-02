@@ -223,10 +223,7 @@ impl Square {
     }
 
     pub fn square_dist(&self, other: &Self) -> u8 {
-        cmp::max(
-            self.rank_dist(other),
-            self.file_dist(other)
-        )
+        self.rank_dist(other).max(self.file_dist(other))
     }
 
     pub fn rank_dist(&self, other: &Self) -> u8 {
@@ -238,7 +235,7 @@ impl Square {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.0 >= 0 && self.0 < Square::H8.0
+        self.0 >= 0 && self.0 <= Square::H8.0
     }
 
     pub fn offset(&self, offset: i8) -> Option<Self> {

@@ -62,7 +62,7 @@ impl MoveList {
                 square.pawn_move(&color)
                     .union(&square.pawn_double_move(&color))
                     .intersect(mask)
-                    .intersect(&board.king_square(&color).between(&square))
+                    .intersect(&board.king_square(&color).pinned_mask(&square))
             } else {
                 square.pawn_move(&color)
                     .union(&square.pawn_double_move(&color))
@@ -421,5 +421,11 @@ mod test {
     fn p4_issue3() {
         let legal_moves = count_moves("rnbqkbnr/ppp1pppp/3p4/8/Q7/2P5/PP1PPPPP/RNB1KBNR b KQkq -");
         assert_eq!(legal_moves, 6)
+    }
+
+    #[test]
+    fn p5_issue1() {
+        let legal_moves = count_moves("rnbqkbnr/1ppppp1p/6p1/p7/8/1P6/PBPPPPPP/RN1QKBNR w KQkq -");
+        assert_eq!(legal_moves, 28)
     }
 }

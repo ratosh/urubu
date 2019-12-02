@@ -7,8 +7,6 @@ use urubu::types::square::Square;
 fn main() {
     println!("Hello, world!");
     let mut board = Board::default();
-//    board.do_move(&BoardMove::build_normal(&Square::C2, &Square::C3));
-//    board.do_move(&BoardMove::build_normal(&Square::D7, &Square::D6));
     let before_time = Instant::now();
     let nodes = Perft::new().perft(&mut board, 5);
     let after_time = Instant::now();

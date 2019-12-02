@@ -1,6 +1,6 @@
 use crate::advanced::attack_info::AttackInfo;
-use crate::advanced::move_list::MoveList;
 use crate::advanced::board::Board;
+use crate::advanced::move_list::MoveList;
 
 pub struct Perft {
     attack_info: AttackInfo,
@@ -8,11 +8,10 @@ pub struct Perft {
 }
 
 impl Perft {
-
     pub fn new() -> Self {
         Self {
-            attack_info : AttackInfo::new(),
-            move_list : MoveList::new(),
+            attack_info: AttackInfo::new(),
+            move_list: MoveList::new(),
         }
     }
 
