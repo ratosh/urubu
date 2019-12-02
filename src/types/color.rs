@@ -68,7 +68,7 @@ impl Color {
     }
 
     #[inline]
-    pub fn invert(&self) -> Color {
+    pub fn reverse(&self) -> Color {
         Color::unsafe_creation(self.to_i8() ^ 1)
     }
 
@@ -96,8 +96,8 @@ mod test {
     }
 
     #[test]
-    fn invert() {
-        assert_eq!(Color::White.invert(), Color::Black);
-        assert_eq!(Color::Black.invert(), Color::White);
+    fn reverse() {
+        assert_eq!(Color::White.reverse(), Color::Black);
+        assert_eq!(Color::Black.reverse(), Color::White);
     }
 }

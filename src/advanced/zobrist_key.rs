@@ -1,7 +1,5 @@
-use crate::advanced::board::Board;
 use crate::types::castling_rights::CastlingRights;
 use crate::types::color::Color;
-use crate::types::file::File;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
 

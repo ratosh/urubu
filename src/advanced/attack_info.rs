@@ -48,7 +48,7 @@ impl AttackInfo {
             self.attack_bitboard[color.to_usize()][piece_type.to_usize()] = Bitboard::EMPTY;
         }
 
-        let check_bitboard = board.check_bitboard;
+        let check_bitboard = board.check_bitboard.intersect(&board.color_bitboard(&color.reverse()));
 
         let mask = if check_bitboard.is_empty() {
             Bitboard::ALL
@@ -81,11 +81,9 @@ impl AttackInfo {
 
     fn pawn_attacks(&mut self, board: &Board, color: &Color, mask: &Bitboard) {
         let unpinned_pawns = board.piece_bitboard(color, &PieceType::PAWN)
-            .intersect(&board.pinned_bitboard.not());
+            .intersect(&board.pinned_bitboard.reverse());
         self.attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
-            unpinned_pawns.pawn_attacks_left(color)
-                .union(&unpinned_pawns.pawn_attacks_right(color))
-                .intersect(mask);
+            unpinned_pawns.pawn_attacks(color).intersect(mask);
 
         let pinned_pawns = board.piece_bitboard(color, &PieceType::PAWN)
             .intersect(&board.pinned_bitboard);
@@ -104,7 +102,7 @@ impl AttackInfo {
 
     fn knight_moves(&mut self, board: &Board, color: &Color, mask: &Bitboard) {
         let unpinned_knights = board.piece_bitboard(color, &PieceType::KNIGHT)
-            .intersect(&board.pinned_bitboard.not());
+            .intersect(&board.pinned_bitboard.reverse());
 
         for square in unpinned_knights.iterator() {
             let bitboard = square.knight_moves().intersect(mask);
@@ -172,9 +170,9 @@ impl AttackInfo {
 
     fn king_moves(&mut self, board: &Board, color: &Color) {
         let king_square = board.king_square(color);
-        let their_square = board.king_square(&color.invert());
+        let their_square = board.king_square(&color.reverse());
         let bitboard = king_square.king_moves()
-            .intersect(&their_square.king_moves().not());
+            .intersect(&their_square.king_moves().reverse());
 
         self.register_bitboard(color, &PieceType::KING, &king_square, &bitboard);
     }

@@ -38,7 +38,7 @@ impl Rank {
     }
 
     #[inline]
-    pub fn invert(&self) -> Rank {
+    pub fn reverse(&self) -> Rank {
         Rank(self.0 ^ Rank::RANK_8.0)
     }
 

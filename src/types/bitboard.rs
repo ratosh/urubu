@@ -24,7 +24,7 @@ pub struct Bitboard(pub u64);
 impl Bitboard {
     pub const ALL: Bitboard = Bitboard(0xFFFFFFFFFFFFFFFFu64);
     pub const EMPTY: Bitboard = Bitboard(0u64);
-    pub const PROMOTION: [Bitboard; Color::NUM_COLORS] = [Bitboard::Rank_2, Bitboard::Rank_7];
+    pub const PROMOTION: [Bitboard; Color::NUM_COLORS] = [Bitboard::RANK_7, Bitboard::RANK_2];
 
     pub const FILE_A: Bitboard = Bitboard(0x101010101010101u64);
     pub const FILE_H: Bitboard = Bitboard(0x8080808080808080u64);
@@ -138,7 +138,7 @@ impl Bitboard {
 
     #[inline]
     pub fn one_element(&self) -> bool {
-        (self.0 & (self.0 - 1)) != self.0
+        (self.0 & (self.0 - 1)) == 0
     }
 
     #[inline]
@@ -172,7 +172,7 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn not(&self) -> Self {
+    pub fn reverse(&self) -> Self {
         Bitboard(!self.0)
     }
 

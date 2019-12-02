@@ -46,7 +46,7 @@ impl File {
     }
 
     #[inline]
-    pub fn invert(&self) -> File {
+    pub fn reverse(&self) -> File {
         File(self.0 ^ File::FILE_H.0)
     }
 
@@ -73,15 +73,15 @@ mod test {
     }
 
     #[test]
-    fn invert() {
-        assert_eq!(File::FILE_A.invert(), File::FILE_H);
-        assert_eq!(File::FILE_B.invert(), File::FILE_G);
-        assert_eq!(File::FILE_C.invert(), File::FILE_F);
-        assert_eq!(File::FILE_D.invert(), File::FILE_E);
-        assert_eq!(File::FILE_E.invert(), File::FILE_D);
-        assert_eq!(File::FILE_F.invert(), File::FILE_C);
-        assert_eq!(File::FILE_G.invert(), File::FILE_B);
-        assert_eq!(File::FILE_H.invert(), File::FILE_A);
+    fn reverse() {
+        assert_eq!(File::FILE_A.reverse(), File::FILE_H);
+        assert_eq!(File::FILE_B.reverse(), File::FILE_G);
+        assert_eq!(File::FILE_C.reverse(), File::FILE_F);
+        assert_eq!(File::FILE_D.reverse(), File::FILE_E);
+        assert_eq!(File::FILE_E.reverse(), File::FILE_D);
+        assert_eq!(File::FILE_F.reverse(), File::FILE_C);
+        assert_eq!(File::FILE_G.reverse(), File::FILE_B);
+        assert_eq!(File::FILE_H.reverse(), File::FILE_A);
     }
 }
 

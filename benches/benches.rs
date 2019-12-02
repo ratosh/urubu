@@ -11,7 +11,7 @@ fn color_to_char(c: &mut Criterion) {
 
 fn color_invert(c: &mut Criterion) {
     c.bench_function("color_invert", |b| {
-        b.iter(|| Color::White.invert());
+        b.iter(|| Color::White.reverse());
     });
 }
 

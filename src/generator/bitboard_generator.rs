@@ -8,6 +8,7 @@ use crate::types::color::Color;
 use crate::types::rank::Rank;
 use crate::types::square::Square;
 use crate::utils::file_writer::{write_2d_bitboard_array, write_bitboard_array};
+use crate::types::file;
 
 const PAWN_FORWARD: [i8; Color::NUM_COLORS] = [NORTH, SOUTH];
 const PAWN_ATTACK_LEFT: [i8; Color::NUM_COLORS] = [NORTH + WEST, SOUTH + WEST];
@@ -123,10 +124,10 @@ fn init_neighbour() -> [Bitboard; Square::NUM_SQUARES] {
 
         let bitboard_bounds = match file {
             crate::types::file::File::FILE_H => {
-                Bitboard::FILE_A.not()
+                Bitboard::FILE_A.reverse()
             }
             crate::types::file::File::FILE_A => {
-                Bitboard::FILE_H.not()
+                Bitboard::FILE_H.reverse()
             }
             _  => {
                 Bitboard::ALL
@@ -226,13 +227,15 @@ fn init_pawn_attacks() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
 
 fn init_pawn_attack(square: &Square, color: &Color) -> Bitboard {
     let mut result = Bitboard::EMPTY;
-    let attack_left = square.offset(PAWN_ATTACK_LEFT[color.to_usize()]);
-    if attack_left != None {
-        result = result.union(&Bitboard::from_square(&attack_left.unwrap()));
+    if square.to_file() != file::File::FILE_A {
+        if let Some(final_square) = square.offset(PAWN_ATTACK_LEFT[color.to_usize()]) {
+            result = result.union(&Bitboard::from_square(&final_square));
+        }
     }
-    let attack_right = square.offset(PAWN_ATTACK_RIGHT[color.to_usize()]);
-    if attack_right != None {
-        result = result.union(&Bitboard::from_square(&attack_right.unwrap()));
+    if square.to_file() != file::File::FILE_H {
+        if let Some(final_square) = square.offset(PAWN_ATTACK_RIGHT[color.to_usize()]) {
+            result = result.union(&Bitboard::from_square(&final_square));
+        }
     }
     return result;
 }

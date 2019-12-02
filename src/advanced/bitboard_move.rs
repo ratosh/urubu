@@ -8,36 +8,33 @@ include!(concat!(env!("OUT_DIR"), "/bitboard_generated.rs"));
 
 const NORTH: i8 = 8;
 
-const EAST: i8 = 1;
-const WEST: i8 = -EAST;
-
-const PAWN_ATTACK_STEP: [i8; 2] = [
-    NORTH + WEST,
-    NORTH + EAST];
-
 impl Bitboard {
     #[inline]
     pub fn pawn_forward(&self, color: &Color) -> Bitboard {
-        self.pawn_move(color, NORTH)
-    }
-
-    #[inline]
-    pub fn pawn_attacks_left(&self, color: &Color) -> Bitboard {
-        self.pawn_move(color, PAWN_ATTACK_STEP[0])
-    }
-
-    #[inline]
-    pub fn pawn_attacks_right(&self, color: &Color) -> Bitboard {
-        self.pawn_move(color, PAWN_ATTACK_STEP[1])
-    }
-
-    #[inline]
-    fn pawn_move(&self, color: &Color, offset: i8) -> Bitboard {
-        Bitboard(if color.is_white() {
-            self.0.shl(offset as u64)
+        if color.is_white() {
+            self.shl(NORTH as u64)
         } else {
-            self.0.shr(offset as u64)
-        })
+            self.shr(NORTH as u64)
+        }
+    }
+
+    #[inline]
+    pub fn shl(&self, offset: u64) -> Bitboard {
+        Bitboard(self.0.shl(offset))
+    }
+
+    #[inline]
+    pub fn shr(&self, offset: u64) -> Bitboard {
+        Bitboard(self.0.shr(offset))
+    }
+
+
+    #[inline]
+    pub fn pawn_attacks(&self, color: &Color) -> Bitboard {
+        return match color {
+            Color::White => self.difference(&Bitboard::FILE_A).shl(7).union(&self.difference(&Bitboard::FILE_H).shl(9)),
+            Color::Black => self.difference(&Bitboard::FILE_A).shr(9).union(&self.difference(&Bitboard::FILE_H).shr(7))
+        };
     }
 }
 
@@ -45,7 +42,7 @@ impl Square {
 
     #[inline]
     pub fn pawn_attacks(&self, color: &Color) -> Bitboard {
-        return PAWN_ATTACKS[color.to_usize()][self.to_usize()]
+        PAWN_ATTACKS[color.to_usize()][self.to_usize()]
     }
 
     #[inline]
@@ -130,6 +127,22 @@ mod test {
     fn pawn_bitboard_forward() {
         assert_eq!(Bitboard::A2.pawn_forward(&Color::White), Bitboard::A3);
         assert_eq!(Bitboard::A2.pawn_forward(&Color::Black), Bitboard::A1);
+    }
+
+    #[test]
+    fn bitboard_pawn_attacks() {
+        assert_eq!(Bitboard::A5.pawn_attacks(&Color::White), Bitboard::B6);
+        assert_eq!(Bitboard::A5.pawn_attacks(&Color::Black), Bitboard::B4);
+        assert_eq!(Bitboard::H3.pawn_attacks(&Color::White), Bitboard::G4);
+        assert_eq!(Bitboard::H3.pawn_attacks(&Color::Black), Bitboard::G2);
+    }
+
+    #[test]
+    fn square_pawn_attacks() {
+        assert_eq!(Square::A5.pawn_attacks(&Color::White), Bitboard::B6);
+        assert_eq!(Square::A5.pawn_attacks(&Color::Black), Bitboard::B4);
+        assert_eq!(Square::H3.pawn_attacks(&Color::White), Bitboard::G4);
+        assert_eq!(Square::H3.pawn_attacks(&Color::Black), Bitboard::G2);
     }
 
     #[test]

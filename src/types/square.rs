@@ -175,7 +175,7 @@ impl Square {
     }
 
     #[inline]
-    pub fn invert(&self) -> Square {
+    pub fn reverse(&self) -> Square {
         Square(self.0 ^ Square::A8.0)
     }
 
@@ -258,15 +258,15 @@ mod test {
     use super::*;
 
     #[test]
-    fn invert() {
-        assert_eq!(Square::A1.invert(), Square::A8);
-        assert_eq!(Square::B2.invert(), Square::B7);
-        assert_eq!(Square::C3.invert(), Square::C6);
-        assert_eq!(Square::D4.invert(), Square::D5);
-        assert_eq!(Square::E8.invert(), Square::E1);
-        assert_eq!(Square::F7.invert(), Square::F2);
-        assert_eq!(Square::G6.invert(), Square::G3);
-        assert_eq!(Square::H5.invert(), Square::H4);
+    fn reverse() {
+        assert_eq!(Square::A1.reverse(), Square::A8);
+        assert_eq!(Square::B2.reverse(), Square::B7);
+        assert_eq!(Square::C3.reverse(), Square::C6);
+        assert_eq!(Square::D4.reverse(), Square::D5);
+        assert_eq!(Square::E8.reverse(), Square::E1);
+        assert_eq!(Square::F7.reverse(), Square::F2);
+        assert_eq!(Square::G6.reverse(), Square::G3);
+        assert_eq!(Square::H5.reverse(), Square::H4);
     }
 
     #[test]

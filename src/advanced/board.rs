@@ -140,7 +140,7 @@ impl Board {
 
     #[inline]
     pub fn empty_bitboard(&self) -> Bitboard {
-        self.game_bitboard().not()
+        self.game_bitboard().reverse()
     }
 
     #[inline]
@@ -208,7 +208,7 @@ impl Board {
 
     #[inline]
     pub fn next_color_to_move(&self) -> Color {
-        self.color_to_move.invert()
+        self.color_to_move.reverse()
     }
 
     #[inline]
@@ -327,7 +327,7 @@ impl Board {
         let move_type = board_move.move_type();
 
         let color_our = self.color_to_move;
-        let color_their = color_our.invert();
+        let color_their = color_our.reverse();
 
         self.zkey.set_color();
         self.zkey.move_piece(&color_our, &piece_type, &square_from, &square_to);
@@ -443,7 +443,7 @@ impl Board {
 
     #[inline]
     fn first_pass(&mut self) {
-        let previous_color = &self.color_to_move.invert();
+        let previous_color = &self.color_to_move.reverse();
         self.update_danger_bitboard(previous_color);
         self.set_check_bitboard(previous_color);
     }
@@ -459,9 +459,8 @@ impl Board {
         self.set_check_bitboard(&color);
     }
 
-    #[inline]
     fn set_pinned(&mut self, color: &Color) {
-        let their_color = color.invert();
+        let their_color = color.reverse();
         if self.slider_pieces(&their_color).is_not_empty() {
             let our_bitboard = self.color_bitboard(color);
             let mut pinned = Bitboard::EMPTY;
@@ -469,12 +468,12 @@ impl Board {
 
             let game_bitboard = self.game_bitboard();
 
-            let between_pieces = self
+            let possible_pin = self
                 .bishop_like_pieces(&their_color)
                 .intersect(&king_square.pseudo_bishop_moves())
                 .union(&self.rook_like_pieces(&their_color).intersect(&king_square.pseudo_rook_moves()));
 
-            for square in between_pieces.iterator() {
+            for square in possible_pin.iterator() {
                 let between_piece = king_square.between(&square).intersect(&game_bitboard);
                 if between_piece.is_not_empty() && between_piece.one_element() {
                     pinned = pinned.union(&between_piece.intersect(&our_bitboard))
@@ -484,11 +483,10 @@ impl Board {
         }
     }
 
-    #[inline]
     fn update_danger_bitboard(&mut self, color: &Color) {
         let king_square = self.king_square(color);
 
-        self.danger_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] = king_square.pawn_attacks(&color.invert());
+        self.danger_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] = king_square.pawn_attacks(&color);
         self.danger_bitboard[color.to_usize()][PieceType::KNIGHT.to_usize()] = king_square.knight_moves();
         self.danger_bitboard[color.to_usize()][PieceType::BISHOP.to_usize()] = king_square.bishop_moves(&self.game_bitboard());
         self.danger_bitboard[color.to_usize()][PieceType::ROOK.to_usize()] = king_square.rook_moves(&self.game_bitboard());
@@ -506,7 +504,7 @@ impl Board {
 
     fn set_check_bitboard(&mut self, color: &Color) {
         let our_color = color;
-        let their_color = our_color.invert();
+        let their_color = our_color.reverse();
         self.check_bitboard = self.danger_bitboard[our_color.to_usize()][PieceType::PAWN.to_usize()]
             .intersect(&self.piece_bitboard(&their_color, &PieceType::PAWN))
             .union(&self.danger_bitboard[our_color.to_usize()][PieceType::KNIGHT.to_usize()]
