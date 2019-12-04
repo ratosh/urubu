@@ -54,10 +54,11 @@ impl Rank {
 
     #[inline]
     pub fn from_char(input: char) -> Option<Rank> {
-        if input >= '1' && input <= '8' {
-            Some(Rank(u8::from(input as u8 - b'1') as i8));
-        }
-        None
+        return if input >= '1' && input <= '8' {
+            Some(Rank(u8::from(input as u8 - b'1') as i8))
+        } else {
+            None
+        };
     }
 }
 

@@ -184,4 +184,14 @@ mod test {
             .union(&Bitboard::A8).union(&Bitboard::B1).union(&Bitboard::C1).union(&Bitboard::D1)
             .union(&Bitboard::E1).union(&Bitboard::F1).union(&Bitboard::G1).union(&Bitboard::H1));
     }
+
+    #[test]
+    fn pinned_mask() {
+        assert_eq!(Square::H2.pinned_mask(&Square::G2), Bitboard::G2.union(&Bitboard::F2)
+            .union(&Bitboard::E2).union(&Bitboard::D2).union(&Bitboard::C2).union(&Bitboard::B2)
+            .union(&Bitboard::A2));
+        assert_eq!(Square::H3.pinned_mask(&Square::G4), Bitboard::G4.union(&Bitboard::F5)
+            .union(&Bitboard::E6).union(&Bitboard::D7).union(&Bitboard::C8));
+    }
+
 }

@@ -57,3 +57,49 @@ impl Perft {
         return result;
     }
 }
+
+
+
+#[cfg(test)]
+mod test {
+    use std::fs::File;
+    use std::io::{BufReader, BufRead};
+    use crate::advanced::board::Board;
+    use crate::advanced::perft::Perft;
+
+    fn check_perft_file(path: &str, depth_limit: u8) {
+        let file = File::open(path).expect("failed to open test suite");
+        let reader = BufReader::new(file);
+
+        let mut board = Board::default();
+        let mut perft = Perft::new();
+
+        for line in reader.lines().map(|l| l.unwrap()) {
+            let mut slices = line.trim().splitn(2, ' ');
+
+            match slices.next() {
+                Some("epd") => {
+                    let position = slices.next().expect("expected position");
+                    println!("position {}", position);
+                    board = Board::from_fen(position);
+                }
+                Some("perft") => {
+                    let mut params = slices.next().expect("expected perft params").splitn(2, ' ');
+                    let depth: u8 = params.next().expect("expected perft depth").parse().expect("expected integer value");
+
+                    let nodes: u64 = params.next().expect("expected perft nodes").parse().expect("expected integer value");
+
+                    if depth <= depth_limit {
+                        assert_eq!(perft.perft(&mut board, depth), nodes);
+                    }
+                }
+                _ => {}
+            }
+        }
+    }
+
+    #[test]
+    fn test_random() {
+        check_perft_file("G:/chess/epds/random.perft", 6);
+    }
+}

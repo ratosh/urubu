@@ -1,11 +1,8 @@
 use std::{env, io};
 use std::path::Path;
 
-use crate::types::bitboard::Bitboard;
-use crate::types::castling_rights::CastlingIndex;
 use crate::types::color::Color;
 use crate::types::file::File;
-use crate::types::rank::Rank;
 use crate::types::square::Square;
 use crate::utils::file_writer::{write_u64, write_u64_array, write_3d_u64_array};
 use crate::utils::random::Random;

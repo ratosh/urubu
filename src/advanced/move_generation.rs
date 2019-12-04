@@ -210,8 +210,8 @@ mod test {
         let mut legal_moves = 0;
         while move_list.has_next() {
             let board_move = move_list.next();
-            println!("move {}", board_move.to_string());
             if board.clone().do_move(&board_move) {
+                println!("move {}", board_move.to_string());
                 legal_moves += 1;
             }
         }
@@ -427,5 +427,17 @@ mod test {
     fn p5_issue1() {
         let legal_moves = count_moves("rnbqkbnr/1ppppp1p/6p1/p7/8/1P6/PBPPPPPP/RN1QKBNR w KQkq -");
         assert_eq!(legal_moves, 28)
+    }
+
+    #[test]
+    fn p438() {
+        let legal_moves = count_moves("1rb3rk/1p6/n7/Bqbpp1p1/P1p3Qp/5NPK/2P3nP/RN3R2 w - -");
+        assert_eq!(legal_moves, 33)
+    }
+
+    #[test]
+    fn p2762() {
+        let legal_moves = count_moves("8/p4Q2/P6k/2P5/8/1P6/1r4RK/r7 w - -");
+        assert_eq!(legal_moves, 30)
     }
 }

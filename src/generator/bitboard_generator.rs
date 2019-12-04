@@ -284,23 +284,25 @@ fn init_pinned_mask() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] 
         Bitboard::FILE_H,
         Bitboard::RANK_8,
         Bitboard::FILE_H.union(&Bitboard::RANK_1),
-        Bitboard::FILE_H.union(&Bitboard::RANK_1),
-        Bitboard::FILE_H,
+        Bitboard::FILE_A.union(&Bitboard::RANK_1),
+        Bitboard::FILE_A,
         Bitboard::RANK_1];
     for start_square in Square::SQUARES.iter() {
         for (index, direction) in direction_array.iter().enumerate() {
             let border = border_array[index];
             let mut moving_square: Option<Square> = Some(*start_square);
-            let mut bitboard = Bitboard::from_square(&start_square);
+            let mut bitboard = Bitboard::EMPTY;
             let pinned_mask = slide_moves(start_square, direction, &border);
-            while bitboard.intersect(&border) == Bitboard::EMPTY {
-                moving_square = moving_square.unwrap().offset(direction[0 as usize]);
-                if moving_square.is_none() {
-                    break;
+            if pinned_mask.is_not_empty() {
+                while bitboard.intersect(&border).is_empty() {
+                    moving_square = moving_square.unwrap().offset(direction[0 as usize]);
+                    if moving_square.is_none() {
+                        break;
+                    }
+                    let final_square = moving_square.unwrap();
+                    result[start_square.to_usize()][final_square.to_usize()] = pinned_mask;
+                    bitboard = Bitboard::from_square(&final_square);
                 }
-                let final_square = moving_square.unwrap();
-                result[start_square.to_usize()][final_square.to_usize()] = pinned_mask;
-                bitboard = Bitboard::from_square(&final_square);
             }
         }
     }

@@ -1,7 +1,6 @@
 use crate::types::color::Color;
 use crate::types::file::File;
 use crate::types::rank::Rank;
-use std::cmp;
 
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
 pub struct Square(pub i8);

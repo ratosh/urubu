@@ -3,7 +3,7 @@ use std::fmt::{Debug, Error, Formatter};
 use crate::advanced::zobrist_key::ZobristKey;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
-use crate::types::castling_rights::{CastlingIndex, CastlingRights, CastlingRightsIterator, CastlingSide};
+use crate::types::castling_rights::{CastlingIndex, CastlingRights, CastlingSide};
 use crate::types::color::Color;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
@@ -606,7 +606,7 @@ mod test {
         board.update_danger_bitboard(&Color::White);
         board.update_danger_bitboard(&Color::Black);
         assert_eq!(board.danger_bitboard[Color::White.to_usize()][PieceType::PAWN.to_usize()],
-                   board.king_square(&Color::White).pawn_attacks(&Color::Black));
+                   board.king_square(&Color::White).pawn_attacks(&Color::White));
         assert_eq!(board.danger_bitboard[Color::White.to_usize()][PieceType::KNIGHT.to_usize()],
                    board.king_square(&Color::White).knight_moves());
     }
