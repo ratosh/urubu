@@ -43,7 +43,7 @@ impl MoveList {
             let rook_path = rook_from.between(&rook_to);
 
             if king_path.union(&rook_path).intersect(&board.game_bitboard())
-                .union(&king_path.intersect(&attack_info.attack_bitboard(&their_color, &PieceType::NONE))).is_empty() {
+                .union(&king_path.intersect(&attack_info.all_attack_bitboard(&their_color, &PieceType::NONE))).is_empty() {
                 let board_move = BoardMove::build_castling(&king_square, &king_to);
                 self.add_move(board_move);
             }
@@ -75,7 +75,7 @@ impl MoveList {
 
     fn generate_moves(&mut self, board: &Board, attack_info: &AttackInfo, piece_type: &PieceType, mask: &Bitboard) {
         let color = board.color_to_move;
-        let masked_move = mask.intersect(&attack_info.attack_bitboard(&color, piece_type));
+        let masked_move = mask.intersect(&attack_info.pinned_attack_bitboard(&color, piece_type));
         if masked_move.is_empty() {
             return;
         }
@@ -213,6 +213,8 @@ mod test {
             if board.clone().do_move(&board_move) {
                 println!("move {}", board_move.to_string());
                 legal_moves += 1;
+            } else {
+                println!("Invalid {}", board_move.to_string());
             }
         }
         return legal_moves;
@@ -438,6 +440,24 @@ mod test {
     #[test]
     fn p2762() {
         let legal_moves = count_moves("8/p4Q2/P6k/2P5/8/1P6/1r4RK/r7 w - -");
+        assert_eq!(legal_moves, 30)
+    }
+
+    #[test]
+    fn gen916() {
+        let legal_moves = count_moves("r3qbn1/4k1p1/B4n2/1p3p1r/p1ppPP1P/P1P1Q3/1P6/RNBbK2R w KQ -");
+        assert_eq!(legal_moves, 29)
+    }
+
+    #[test]
+    fn gen2535() {
+        let legal_moves = count_moves("rnbqk1n1/pp1pppb1/2p5/6p1/8/NP1P4/P1PQPPP1/R3KBNr w Qq -");
+        assert_eq!(legal_moves, 28)
+    }
+
+    #[test]
+    fn gen683_3() {
+        let legal_moves = count_moves("5b2/8/rp3qN1/p1k2p1r/PpbpP3/7P/2QP1PB1/RN2K2R w KQ -");
         assert_eq!(legal_moves, 30)
     }
 }

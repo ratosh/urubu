@@ -71,10 +71,10 @@ impl Board {
         result.castling_rights_masks[result.king_square(&Color::White).to_usize()] = CastlingRights::WHITE_RIGHTS;
         result.castling_rights_masks[result.king_square(&Color::Black).to_usize()] = CastlingRights::BLACK_RIGHTS;
 
-        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::WhiteA.to_usize()].to_usize()] = CastlingRights::WHITE_OO;
-        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::WhiteH.to_usize()].to_usize()] = CastlingRights::WHITE_OOO;
-        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] = CastlingRights::BLACK_OO;
-        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OOO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::WhiteA.to_usize()].to_usize()] = CastlingRights::WHITE_OOO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::WhiteH.to_usize()].to_usize()] = CastlingRights::WHITE_OO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] = CastlingRights::BLACK_OOO;
+        result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OO;
 
         result.compute_zobrist();
         result.first_pass();

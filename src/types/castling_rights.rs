@@ -5,8 +5,8 @@ use crate::types::square::Square;
 #[allow(missing_docs)]
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug, Eq)]
 pub enum CastlingSide {
-    ASide = 0,
-    HSide = 1,
+    HSide = 0,
+    ASide = 1,
 }
 
 impl CastlingSide {
@@ -24,10 +24,10 @@ impl CastlingSide {
 #[allow(missing_docs)]
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug, Eq)]
 pub enum CastlingIndex {
-    WhiteA = 0,
-    WhiteH = 1,
-    BlackA = 2,
-    BlackH = 3,
+    WhiteH = 0,
+    WhiteA = 1,
+    BlackH = 2,
+    BlackA = 3,
 }
 
 #[allow(missing_docs)]
@@ -70,10 +70,10 @@ impl CastlingIndex {
     #[inline]
     pub fn from_char(c: char) -> Option<Self> {
         match c {
-            'K' => Some(CastlingIndex::WhiteA),
-            'Q' => Some(CastlingIndex::WhiteH),
-            'k' => Some(CastlingIndex::BlackA),
-            'q' => Some(CastlingIndex::BlackH),
+            'K' => Some(CastlingIndex::WhiteH),
+            'Q' => Some(CastlingIndex::WhiteA),
+            'k' => Some(CastlingIndex::BlackH),
+            'q' => Some(CastlingIndex::BlackA),
             _ => None,
         }
     }
