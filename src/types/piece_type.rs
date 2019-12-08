@@ -35,15 +35,25 @@ impl PieceType {
     }
 
     #[inline]
-    pub fn from_char(c: char) -> PieceType {
-        let lower_c = c.to_lowercase().nth(0).unwrap();
-        if let Some(index) = PieceType::REPRESENTATION.iter().position(|&s| s == lower_c) {
-            return PieceType(index as u8);
+    pub fn to_char_colored(&self, color: Color) -> char {
+        if color == Color::White {
+            self.to_char().to_ascii_uppercase()
+        } else {
+            self.to_char()
         }
-        return PieceType::NONE;
     }
 
-    pub fn piece_color(c: char) -> Color {
+    #[inline]
+    pub fn from_char(c: char) -> (PieceType, Color) {
+        let lower_c = c.to_lowercase().nth(0).unwrap();
+        if let Some(index) = PieceType::REPRESENTATION.iter().position(|&s| s == lower_c) {
+            return (PieceType(index as u8), PieceType::get_color(c));
+        }
+        return (PieceType::NONE, Color::White);
+    }
+
+    #[inline]
+    fn get_color(c: char) -> Color {
         if c.is_uppercase() {
             Color::White
         } else {
