@@ -4,6 +4,7 @@ use crate::advanced::game::GAME_MAX_LENGTH;
 pub struct MoveList {
     current_ply: usize,
     move_list: [BoardMove; GAME_MAX_LENGTH],
+    move_score: [u64; GAME_MAX_LENGTH],
     next_to_move: [usize; MoveList::MAX_PLIES],
     next_to_generate: [usize; MoveList::MAX_PLIES],
 }
@@ -16,6 +17,7 @@ impl MoveList {
         MoveList {
             current_ply: 0,
             move_list: [BoardMove::NONE; GAME_MAX_LENGTH],
+            move_score: [0; GAME_MAX_LENGTH],
             next_to_move: [0; MoveList::MAX_PLIES],
             next_to_generate: [0; MoveList::MAX_PLIES],
         }
@@ -37,9 +39,19 @@ impl MoveList {
     }
 
     pub fn next(&mut self) -> BoardMove {
-        let board_move = self.move_list[self.next_to_move[self.current_ply]];
+        let start_index = self.next_to_move[self.current_ply];
+        let end_index = self.next_to_generate[self.current_ply];
+        let mut best_index = start_index;
+        for index in start_index..end_index {
+            if self.move_score[best_index] < self.move_score[index] {
+                best_index = index;
+            }
+        }
+        let best_move = self.move_list[best_index];
+        self.move_list[best_index] = self.move_list[start_index];
+        self.move_score[best_index] = self.move_score[start_index];
         self.next_to_move[self.current_ply] += 1;
-        return board_move;
+        return best_move;
     }
 
     pub fn has_next(&self) -> bool {

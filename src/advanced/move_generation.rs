@@ -10,6 +10,7 @@ use crate::types::square::Square;
 
 #[allow(dead_code)]
 impl MoveList {
+    #[inline]
     pub fn generate_quiets(&mut self, board: &Board, attack_info: &mut AttackInfo) {
         attack_info.update(board);
         let our_color = board.color_to_move;
@@ -28,6 +29,7 @@ impl MoveList {
         self.generate_moves(board, attack_info, &PieceType::KING, &board.empty_bitboard());
     }
 
+    #[inline]
     fn generate_castling_moves(&mut self, board: &Board, attack_info: &AttackInfo) {
         let our_color = board.color_to_move;
         let their_color = our_color.reverse();
@@ -50,6 +52,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     fn generate_quiet_pawn_moves(&mut self, board: &Board, mask: &Bitboard) {
         let color = board.color_to_move;
         let their_color = board.color_to_move.reverse();
@@ -73,6 +76,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     fn generate_moves(&mut self, board: &Board, attack_info: &AttackInfo, piece_type: &PieceType, mask: &Bitboard) {
         let color = board.color_to_move;
         let masked_move = mask.intersect(&attack_info.pinned_attack_bitboard(&color, piece_type));
@@ -84,6 +88,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     fn generate_moves_from_square(&mut self, color: &Color, square: &Square, bitboard: &Bitboard) {
         for square_to in bitboard.iterator() {
             let board_move = BoardMove::build_normal(square, &square_to);
@@ -91,6 +96,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     pub fn generate_noisy(&mut self, board: &Board, attack_info: &mut AttackInfo) {
         attack_info.update(board);
         let our_color = board.color_to_move;
@@ -109,6 +115,7 @@ impl MoveList {
         self.generate_moves(board, attack_info, &PieceType::KING, &board.color_bitboard(&our_color.reverse()));
     }
 
+    #[inline]
     fn generate_ep_capture(&mut self, board: &Board, mask: &Bitboard) {
         if let Some(ep_square) = board.ep_square {
             let color = board.color_to_move;
@@ -132,6 +139,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     fn generate_capture(&mut self, board: &Board, mask: &Bitboard) {
         let color = board.color_to_move;
         let their_color = board.color_to_move.reverse();
@@ -150,6 +158,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     fn generate_capture_promotions(&mut self, board: &Board, mask: &Bitboard) {
         let color = board.color_to_move;
         let their_color = board.color_to_move.reverse();
@@ -168,6 +177,7 @@ impl MoveList {
         }
     }
 
+    #[inline]
     fn generate_quiet_promotions(&mut self, board: &Board, mask: &Bitboard) {
         let color = board.color_to_move;
         let their_color = board.color_to_move.reverse();
