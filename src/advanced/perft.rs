@@ -5,6 +5,8 @@ use crate::advanced::move_list::MoveList;
 pub struct Perft {
     attack_info: AttackInfo,
     move_list: MoveList,
+    invalid_moves: u64,
+    valid_moves: u64
 }
 
 impl Perft {
@@ -12,6 +14,8 @@ impl Perft {
         Self {
             attack_info: AttackInfo::new(),
             move_list: MoveList::new(),
+            invalid_moves: 0,
+            valid_moves: 0,
         }
     }
 
@@ -22,8 +26,6 @@ impl Perft {
         self.move_list.start_ply();
         self.move_list.generate_quiets(board, &mut self.attack_info);
         self.move_list.generate_noisy(board, &mut self.attack_info);
-
-        let mut result = 0;
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
@@ -50,6 +52,9 @@ impl Perft {
             let mut clone = board.clone();
             if clone.do_move(&board_move) {
                 result += self.perft(&mut clone, depth - 1);
+                self.valid_moves += 1;
+            } else {
+                self.invalid_moves += 1;
             }
         }
         self.move_list.end_ply();
@@ -98,6 +103,8 @@ mod test {
                 _ => {}
             }
         }
+        println!("valid nodes {}", perft.valid_moves);
+        println!("invalid nodes {}", perft.invalid_moves);
     }
 
     #[test]

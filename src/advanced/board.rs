@@ -77,7 +77,7 @@ impl Board {
         result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OO;
 
         result.compute_zobrist();
-        result.first_pass();
+        result.initial_pass();
         return result;
     }
 
@@ -123,7 +123,7 @@ impl Board {
         result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OOO;
 
         result.compute_zobrist();
-        result.first_pass();
+        result.initial_pass();
         return result;
     }
 
@@ -360,8 +360,6 @@ impl Board {
         self.update_castling_rights(&square_from, &square_to);
         self.color_to_move = color_their;
 
-        self.piece_bitboard[PieceType::NONE.to_usize()] = self.color_bitboard[Color::White.to_usize()]
-            .union(&self.color_bitboard[Color::Black.to_usize()]);
         self.first_pass();
         if self.check_bitboard.is_not_empty() {
             return false;
@@ -378,6 +376,8 @@ impl Board {
 
     #[inline]
     fn first_pass(&mut self) {
+        self.piece_bitboard[PieceType::NONE.to_usize()] = self.color_bitboard[Color::White.to_usize()]
+            .union(&self.color_bitboard[Color::Black.to_usize()]);
         let previous_color = &self.color_to_move.reverse();
         self.update_danger_bitboard(previous_color);
         self.set_check_bitboard(previous_color);

@@ -70,26 +70,24 @@ impl AttackInfo {
             self.rook_moves(board, color, &mask);
             self.queen_moves(board, color, &mask);
         }
-    }
-
-    fn second_pass(&mut self, board: &Board, color: &Color) {
-        self.king_moves(board, color);
 
         self.all_attack_bitboard[color.to_usize()][PieceType::NONE.to_usize()] =
             self.all_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
                 .union(&self.all_attack_bitboard[color.to_usize()][PieceType::KNIGHT.to_usize()])
                 .union(&self.all_attack_bitboard[color.to_usize()][PieceType::BISHOP.to_usize()])
                 .union(&self.all_attack_bitboard[color.to_usize()][PieceType::ROOK.to_usize()])
-                .union(&self.all_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()])
-                .union(&self.all_attack_bitboard[color.to_usize()][PieceType::KING.to_usize()]);
+                .union(&self.all_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()]);
 
         self.pinned_attack_bitboard[color.to_usize()][PieceType::NONE.to_usize()] =
             self.pinned_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
                 .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::KNIGHT.to_usize()])
                 .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::BISHOP.to_usize()])
                 .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::ROOK.to_usize()])
-                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()])
-                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::KING.to_usize()]);
+                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()]);
+    }
+
+    fn second_pass(&mut self, board: &Board, color: &Color) {
+        self.king_moves(board, color);
     }
 
     fn pawn_attacks(&mut self, board: &Board, color: &Color, mask: &Bitboard) {
