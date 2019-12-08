@@ -169,7 +169,7 @@ impl Board {
     pub fn piece_type(&self, square: &Square) -> PieceType {
         let bitboard = Bitboard::from_square(square);
 
-        if !self.piece_bitboard[PieceType::NONE.to_usize()].has(&bitboard) {
+        if self.piece_bitboard[PieceType::NONE.to_usize()].intersect(&bitboard).is_empty() {
             return PieceType::NONE;
         } else if self.piece_bitboard[PieceType::PAWN.to_usize()].has(&bitboard) {
             return PieceType::PAWN;
@@ -224,8 +224,6 @@ impl Board {
     #[inline]
     fn remove_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
         let bitboard = Bitboard::from_square(square);
-        self.piece_bitboard[PieceType::NONE.to_usize()] =
-            self.piece_bitboard[PieceType::NONE.to_usize()].difference(&bitboard);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].difference(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -235,8 +233,6 @@ impl Board {
     #[inline]
     pub fn add_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
         let bitboard = Bitboard::from_square(square);
-        self.piece_bitboard[PieceType::NONE.to_usize()] =
-            self.piece_bitboard[PieceType::NONE.to_usize()].union(&bitboard);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].union(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -247,8 +243,6 @@ impl Board {
     fn move_piece(&mut self, color: &Color, piece_type: &PieceType, square_from: &Square, square_to: &Square) {
         let bitboard = Bitboard::from_square(square_from)
             .union(&Bitboard::from_square(square_to));
-        self.piece_bitboard[PieceType::NONE.to_usize()] =
-            self.piece_bitboard[PieceType::NONE.to_usize()].invert(&bitboard);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].invert(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -292,21 +286,6 @@ impl Board {
 
         self.move_piece(color, &PieceType::KING, &square_from, &square_to);
         self.move_piece(color, &PieceType::ROOK, &square_rook_from, &square_rook_to);
-    }
-
-    #[inline]
-    fn undo_castle(&mut self, color: &Color, square_from: &Square, square_to: &Square) {
-        let castling_side = if square_to.0 > square_from.0 {
-            CastlingSide::HSide
-        } else {
-            CastlingSide::ASide
-        };
-        let castling_index = CastlingIndex::from_color_side(color, &castling_side);
-        let square_rook_from = self.initial_rook_square[castling_index.to_usize()];
-        let square_rook_to = CastlingIndex::SQUARE_ROOK_TO[castling_index.to_usize()];
-
-        self.move_piece(color, &PieceType::KING, &square_to, &square_from);
-        self.move_piece(color, &PieceType::ROOK, &square_rook_to, &square_rook_from);
     }
 
     #[inline]
@@ -391,50 +370,6 @@ impl Board {
         return true;
     }
 
-    /*
-    #[inline]
-    pub fn undo_move(&mut self, board_move: &BoardMove) {
-        let color_their = self.color_to_move;
-        let color_our = color_their.invert();
-
-        let square_from = board_move.square_from();
-        let square_to = board_move.square_to();
-        let mut piece_type = self.piece_type(&square_to);
-        let move_type = board_move.move_type();
-        let piece_captured = self.piece_captured;
-
-        if move_type.is_promotion() {
-            self.remove_piece(&color_our, &piece_type, &square_to);
-            self.add_piece(&color_our, &PieceType::PAWN, &square_to);
-
-            piece_type = PieceType::PAWN
-        }
-
-        if move_type.is_castling() {
-            self.undo_castle(&color_our, &square_from, &square_to);
-        } else {
-            self.move_piece(&color_our, &piece_type, &square_to, &square_from);
-
-            if piece_captured != PieceType::NONE {
-                let mut square_capture = square_to;
-                if move_type.is_passant() {
-                    square_capture = square_capture.forward(&color_their);
-                }
-                self.add_piece(&color_their, &piece_captured, &square_capture);
-            }
-        }
-
-        if piece_type == PieceType::KING {
-            self.king_square[color_our.to_usize()] = square_from;
-        }
-
-        self.color_to_move = color_our;
-        self.piece_bitboard[PieceType::NONE.to_usize()] = self.color_bitboard[Color::White.to_usize()]
-            .union(&self.color_bitboard[Color::Black.to_usize()]);
-    }
-    */
-
-    // Extra info:
     #[inline]
     pub fn initial_pass(&mut self) {
         self.first_pass();
