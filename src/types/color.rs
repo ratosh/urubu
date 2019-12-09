@@ -26,6 +26,10 @@ impl Color {
     pub fn to_u16(&self) -> u16 {
         return *self as u16;
     }
+    #[inline]
+    pub fn to_i16(&self) -> i16 {
+        return *self as i16;
+    }
 
     #[inline]
     pub fn to_i8(&self) -> i8 {

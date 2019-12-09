@@ -54,6 +54,8 @@ impl Perft {
                 result += self.perft(&mut clone, depth - 1);
                 self.valid_moves += 1;
             } else {
+                println!("board {}", board.to_fen());
+                println!("piece {}", board_move.to_string());
                 self.invalid_moves += 1;
             }
         }
@@ -108,8 +110,8 @@ mod test {
     }
 
     #[test]
-    #[ignore]
+//    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 5);
+        check_perft_file("G:/chess/epds/random.perft", 4);
     }
 }

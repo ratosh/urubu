@@ -107,7 +107,7 @@ impl Board {
         result.push(Board::EMPTY_SPACE);
         result.push_str(self.rule_50.to_string().as_str());
         result.push(Board::EMPTY_SPACE);
-        result.push_str(cmp::max(1, (self.move_number - self.color_to_move.to_u16()) / 2).to_string().as_str());
+        result.push_str(cmp::max(1, (self.move_number as i16 - self.color_to_move.to_i16()) / 2).to_string().as_str());
         return result;
     }
 }

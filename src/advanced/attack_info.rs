@@ -9,7 +9,7 @@ use crate::types::square::Square;
 pub struct AttackInfo {
     all_attack_bitboard: [[Bitboard; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
     // Consider pin when creating attack bitboard
-    pinned_attack_bitboard: [[Bitboard; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
+    special_attack_bitboard: [[Bitboard; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
     piece_movement: [Bitboard; Square::NUM_SQUARES],
 
     movement_mask: [Bitboard; Color::NUM_COLORS],
@@ -21,7 +21,7 @@ impl AttackInfo {
     pub fn new() -> Self {
         AttackInfo {
             all_attack_bitboard: [[Bitboard::EMPTY; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
-            pinned_attack_bitboard: [[Bitboard::EMPTY; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
+            special_attack_bitboard: [[Bitboard::EMPTY; PieceType::NUM_PIECE_TYPES]; Color::NUM_COLORS],
             piece_movement: [Bitboard::EMPTY; Square::NUM_SQUARES],
             movement_mask: [Bitboard::EMPTY; Color::NUM_COLORS],
             zobrist_key: ZobristKey::new(),
@@ -47,7 +47,7 @@ impl AttackInfo {
     fn first_pass(&mut self, board: &Board, color: &Color) {
         for piece_type in PieceType::PIECE_TYPES.iter() {
             self.all_attack_bitboard[color.to_usize()][piece_type.to_usize()] = Bitboard::EMPTY;
-            self.pinned_attack_bitboard[color.to_usize()][piece_type.to_usize()] = Bitboard::EMPTY;
+            self.special_attack_bitboard[color.to_usize()][piece_type.to_usize()] = Bitboard::EMPTY;
         }
 
         let check_bitboard = board.check_bitboard.intersect(&board.color_bitboard(&color.reverse()));
@@ -78,12 +78,12 @@ impl AttackInfo {
                 .union(&self.all_attack_bitboard[color.to_usize()][PieceType::ROOK.to_usize()])
                 .union(&self.all_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()]);
 
-        self.pinned_attack_bitboard[color.to_usize()][PieceType::NONE.to_usize()] =
-            self.pinned_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
-                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::KNIGHT.to_usize()])
-                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::BISHOP.to_usize()])
-                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::ROOK.to_usize()])
-                .union(&self.pinned_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()]);
+        self.special_attack_bitboard[color.to_usize()][PieceType::NONE.to_usize()] =
+            self.special_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
+                .union(&self.special_attack_bitboard[color.to_usize()][PieceType::KNIGHT.to_usize()])
+                .union(&self.special_attack_bitboard[color.to_usize()][PieceType::BISHOP.to_usize()])
+                .union(&self.special_attack_bitboard[color.to_usize()][PieceType::ROOK.to_usize()])
+                .union(&self.special_attack_bitboard[color.to_usize()][PieceType::QUEEN.to_usize()]);
     }
 
     fn second_pass(&mut self, board: &Board, color: &Color) {
@@ -96,10 +96,11 @@ impl AttackInfo {
     fn pawn_attacks(&mut self, board: &Board, color: &Color, mask: &Bitboard) {
         let unpinned_pawns = board.piece_bitboard(color, &PieceType::PAWN)
             .intersect(&board.pinned_bitboard.reverse());
+        let unpinned_attacks = unpinned_pawns.pawn_attacks(color).intersect(mask);
         self.all_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
-            unpinned_pawns.pawn_attacks(color).intersect(mask);
-        self.pinned_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
-            unpinned_pawns.pawn_attacks(color).intersect(mask);
+            unpinned_attacks;
+        self.special_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
+            unpinned_attacks;
 
         let pinned_pawns = board.piece_bitboard(color, &PieceType::PAWN)
             .intersect(&board.pinned_bitboard);
@@ -114,8 +115,8 @@ impl AttackInfo {
                 self.all_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
                     .union(&bitboard);
 
-            self.pinned_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
-                self.pinned_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
+            self.special_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()] =
+                self.special_attack_bitboard[color.to_usize()][PieceType::PAWN.to_usize()]
                     .union(&bitboard.intersect(&pinned_mask));
         }
     }
@@ -150,7 +151,7 @@ impl AttackInfo {
 
         for square in rooks.iterator() {
             let from_bitboard = Bitboard::from_square(&square);
-            let bitboard = square.rook_moves(&board.game_bitboard()) .intersect(mask);
+            let bitboard = square.rook_moves(&board.game_bitboard()).intersect(mask);
             let pinned_bitboard = pinned_mask(board, color, &square, bitboard);
             self.register_bitboard(color, &PieceType::ROOK, &square, &bitboard, &pinned_bitboard);
         }
@@ -164,9 +165,9 @@ impl AttackInfo {
         for square in queens.iterator() {
             let from_bitboard = Bitboard::from_square(&square);
             let bitboard =
-                    square.bishop_moves(&board.game_bitboard())
-                        .union(&square.rook_moves(&board.game_bitboard()))
-                        .intersect(mask);
+                square.bishop_moves(&board.game_bitboard())
+                    .union(&square.rook_moves(&board.game_bitboard()))
+                    .intersect(mask);
             let pinned_bitboard = pinned_mask(board, color, &square, bitboard);
             self.register_bitboard(color, &PieceType::QUEEN, &square, &bitboard, &pinned_bitboard);
         }
@@ -177,8 +178,14 @@ impl AttackInfo {
         let their_color = color.reverse();
         let king_square = board.king_square(color);
         let their_square = board.king_square(&their_color);
+
+        let mut king_move_mask = Bitboard::EMPTY;
+        for square in board.check_bitboard.intersect(&board.slider_pieces(&their_color)).iterator() {
+            king_move_mask = king_move_mask.union(&square.pinned_mask(&king_square))
+        }
         let bitboard = king_square.king_moves()
-            .difference(&their_square.king_moves());
+            .difference(&their_square.king_moves())
+            .difference(&king_move_mask);
 
         let bitboard_safe = bitboard.difference(&self.all_attack_bitboard[their_color.to_usize()][PieceType::NONE.to_usize()]);
 
@@ -190,7 +197,7 @@ impl AttackInfo {
         self.piece_movement[square.to_usize()] = *pin_bitboard;
         self.all_attack_bitboard[color.to_usize()][piece_type.to_usize()] =
             self.all_attack_bitboard(&color, piece_type).union(bitboard);
-        self.pinned_attack_bitboard[color.to_usize()][piece_type.to_usize()] =
+        self.special_attack_bitboard[color.to_usize()][piece_type.to_usize()] =
             self.pinned_attack_bitboard(&color, piece_type).union(pin_bitboard);
     }
 
@@ -201,7 +208,7 @@ impl AttackInfo {
 
     #[inline]
     pub fn pinned_attack_bitboard(&self, color: &Color, piece_type: &PieceType) -> Bitboard {
-        self.pinned_attack_bitboard[color.to_usize()][piece_type.to_usize()]
+        self.special_attack_bitboard[color.to_usize()][piece_type.to_usize()]
     }
 
     #[inline]

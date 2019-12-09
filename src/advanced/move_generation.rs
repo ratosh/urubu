@@ -105,12 +105,12 @@ impl MoveList {
         if mask.is_not_empty() {
             self.generate_capture_promotions(board, &mask);
             self.generate_quiet_promotions(board, &attack_info.movement_mask(&our_color).intersect(&board.empty_bitboard()));
-            self.generate_capture(board, &mask);
+            self.generate_pawn_capture(board, &mask);
             self.generate_moves(board, attack_info, &PieceType::KNIGHT, &mask);
             self.generate_moves(board, attack_info, &PieceType::BISHOP, &mask);
             self.generate_moves(board, attack_info, &PieceType::ROOK, &mask);
             self.generate_moves(board, attack_info, &PieceType::QUEEN, &mask);
-            self.generate_ep_capture(board, &mask);
+            self.generate_ep_capture(board, &attack_info.movement_mask(&our_color));
         }
         self.generate_moves(board, attack_info, &PieceType::KING, &board.color_bitboard(&our_color.reverse()));
     }
@@ -118,8 +118,13 @@ impl MoveList {
     #[inline]
     fn generate_ep_capture(&mut self, board: &Board, mask: &Bitboard) {
         if let Some(ep_square) = board.ep_square {
+
             let color = board.color_to_move;
-            let their_color = board.color_to_move.reverse();
+            let their_color = color.reverse();
+
+            if Bitboard::from_square(&ep_square.forward(&their_color)).intersect(mask).is_empty() {
+                return;
+            }
 
             let bitboard = ep_square.pawn_attacks(&their_color)
                 .intersect(&board.piece_bitboard(&color, &PieceType::PAWN));
@@ -140,7 +145,7 @@ impl MoveList {
     }
 
     #[inline]
-    fn generate_capture(&mut self, board: &Board, mask: &Bitboard) {
+    fn generate_pawn_capture(&mut self, board: &Board, mask: &Bitboard) {
         let color = board.color_to_move;
         let their_color = board.color_to_move.reverse();
         let pawn_bitboard = board.piece_bitboard(&color, &PieceType::PAWN)
@@ -149,7 +154,9 @@ impl MoveList {
 
         for square in pawn_bitboard.iterator() {
             let bitboard_from = Bitboard::from_square(&square);
-            let mut bitboard_to = square.pawn_attacks(&color).intersect(&board.color_bitboard(&their_color));
+            let mut bitboard_to = square.pawn_attacks(&color)
+                .intersect(&board.color_bitboard(&their_color))
+                .intersect(mask);
             if bitboard_from.intersect(&board.pinned_bitboard).is_not_empty() {
                 let king_square = board.king_square(&color);
                 bitboard_to = bitboard_to.intersect(&king_square.pinned_mask(&square));
@@ -168,7 +175,9 @@ impl MoveList {
 
         for square in pawn_bitboard.iterator() {
             let bitboard_from = Bitboard::from_square(&square);
-            let mut bitboard_to = square.pawn_attacks(&color).intersect(&board.color_bitboard(&their_color));
+            let mut bitboard_to = square.pawn_attacks(&color)
+                .intersect(&board.color_bitboard(&their_color))
+                .intersect(mask);
             if bitboard_from.intersect(&board.pinned_bitboard).is_not_empty() {
                 let king_square = board.king_square(&color);
                 bitboard_to = bitboard_to.intersect(&king_square.pinned_mask(&square));

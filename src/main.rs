@@ -14,5 +14,4 @@ fn main() {
     println!("perft result {}", nodes);
     println!("Time taken {} ms", dur);
     println!("nps {}", (nodes * 1000 /dur));
-//    Perft::new().divide(&mut board, 5);
 }
