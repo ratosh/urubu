@@ -1,7 +1,6 @@
 use crate::types::color::Color;
 use crate::types::file::File;
 use crate::types::rank::Rank;
-use std::cmp;
 
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
 pub struct Square(pub i8);
@@ -175,18 +174,18 @@ impl Square {
     }
 
     #[inline]
-    pub fn invert(&self) -> Square {
+    pub fn reverse(&self) -> Square {
         Square(self.0 ^ Square::A8.0)
     }
 
     #[inline]
     pub fn relative(&self, color: &Color) -> Square {
-        Square(self.0 ^ (Square::A8.0 * color.0))
+        Square(self.0 ^ (Square::A8.0 * color.to_i8()))
     }
 
     #[inline]
     pub fn from_file_rank(file: &File, rank: &Rank) -> Square {
-        Square(file.0 << 3 + rank.0)
+        Square(rank.0.wrapping_shl(3) + file.0)
     }
 
     #[inline]
@@ -195,12 +194,12 @@ impl Square {
     }
 
     #[inline]
-    pub fn rank(&self) -> Rank {
+    pub fn to_rank(&self) -> Rank {
         Rank(self.0 >> 3)
     }
 
     #[inline]
-    pub fn file(&self) -> File {
+    pub fn to_file(&self) -> File {
         File(self.0 & 7)
     }
 
@@ -209,36 +208,42 @@ impl Square {
         Square::REPRESENTATION[self.to_usize()].to_string()
     }
 
+    #[inline]
+    pub fn from_string(st: &str) -> Option<Square> {
+        if let Some(index) = Square::REPRESENTATION.iter().position(|&s| s == st) {
+            return Some(Square(index as i8));
+        }
+        return None;
+    }
+
     pub fn forward(&self, color: &Color) -> Self {
         let result = self.0 + 8 * color.multiplier();
         Square(result)
     }
 
     pub fn square_dist(&self, other: &Self) -> u8 {
-        cmp::max(
-            self.rank_dist(other),
-            self.file_dist(other)
-        )
+        self.rank_dist(other).max(self.file_dist(other))
     }
 
     pub fn rank_dist(&self, other: &Self) -> u8 {
-        self.rank().distance(&other.rank())
+        self.to_rank().distance(&other.to_rank())
     }
 
     pub fn file_dist(&self, other: &Self) -> u8 {
-        self.file().distance(&other.file())
+        self.to_file().distance(&other.to_file())
     }
 
     pub fn is_valid(&self) -> bool {
-        self.0 >= 0 && self.0 < Square::H8.0
+        self.0 >= 0 && self.0 <= Square::H8.0
     }
 
-    pub fn offset(&self, value: &i8) -> Option<Self> {
-        let result = self.0 + *value;
-        if result >= Square::A1.0 && result <= Square::H8.0 {
-            return Some(Square(result));
+    pub fn offset(&self, offset: i8) -> Option<Self> {
+        let final_square = Square(self.0 + offset);
+        if final_square.is_valid() {
+            Some(final_square)
+        } else {
+            None
         }
-        None
     }
 }
 
@@ -249,44 +254,59 @@ mod test {
     use super::*;
 
     #[test]
-    fn invert() {
-        assert_eq!(Square::A1.invert(), Square::A8);
-        assert_eq!(Square::B2.invert(), Square::B7);
-        assert_eq!(Square::C3.invert(), Square::C6);
-        assert_eq!(Square::D4.invert(), Square::D5);
-        assert_eq!(Square::E8.invert(), Square::E1);
-        assert_eq!(Square::F7.invert(), Square::F2);
-        assert_eq!(Square::G6.invert(), Square::G3);
-        assert_eq!(Square::H5.invert(), Square::H4);
+    fn reverse() {
+        assert_eq!(Square::A1.reverse(), Square::A8);
+        assert_eq!(Square::B2.reverse(), Square::B7);
+        assert_eq!(Square::C3.reverse(), Square::C6);
+        assert_eq!(Square::D4.reverse(), Square::D5);
+        assert_eq!(Square::E8.reverse(), Square::E1);
+        assert_eq!(Square::F7.reverse(), Square::F2);
+        assert_eq!(Square::G6.reverse(), Square::G3);
+        assert_eq!(Square::H5.reverse(), Square::H4);
     }
 
     #[test]
     fn relative() {
-        assert_eq!(Square::A1.relative(&Color::WHITE), Square::A1);
-        assert_eq!(Square::A1.relative(&Color::BLACK), Square::A8);
-        assert_eq!(Square::B2.relative(&Color::WHITE), Square::B2);
-        assert_eq!(Square::B2.relative(&Color::BLACK), Square::B7);
-        assert_eq!(Square::C3.relative(&Color::WHITE), Square::C3);
-        assert_eq!(Square::C3.relative(&Color::BLACK), Square::C6);
-        assert_eq!(Square::D4.relative(&Color::WHITE), Square::D4);
-        assert_eq!(Square::D4.relative(&Color::BLACK), Square::D5);
+        assert_eq!(Square::A1.relative(&Color::White), Square::A1);
+        assert_eq!(Square::A1.relative(&Color::Black), Square::A8);
+        assert_eq!(Square::B2.relative(&Color::White), Square::B2);
+        assert_eq!(Square::B2.relative(&Color::Black), Square::B7);
+        assert_eq!(Square::C3.relative(&Color::White), Square::C3);
+        assert_eq!(Square::C3.relative(&Color::Black), Square::C6);
+        assert_eq!(Square::D4.relative(&Color::White), Square::D4);
+        assert_eq!(Square::D4.relative(&Color::Black), Square::D5);
     }
 
     #[test]
     fn forward() {
-        assert_eq!(Square::A1.forward(&Color::WHITE), Square::A2);
-        assert_eq!(Square::B2.forward(&Color::WHITE), Square::B3);
-        assert_eq!(Square::B2.forward(&Color::BLACK), Square::B1);
-        assert_eq!(Square::C3.forward(&Color::WHITE), Square::C4);
-        assert_eq!(Square::C3.forward(&Color::BLACK), Square::C2);
-        assert_eq!(Square::D4.forward(&Color::WHITE), Square::D5);
-        assert_eq!(Square::D4.forward(&Color::BLACK), Square::D3);
-        assert_eq!(Square::E5.forward(&Color::WHITE), Square::E6);
-        assert_eq!(Square::E5.forward(&Color::BLACK), Square::E4);
-        assert_eq!(Square::F6.forward(&Color::WHITE), Square::F7);
-        assert_eq!(Square::F6.forward(&Color::BLACK), Square::F5);
-        assert_eq!(Square::G7.forward(&Color::WHITE), Square::G8);
-        assert_eq!(Square::G7.forward(&Color::BLACK), Square::G6);
-        assert_eq!(Square::H8.forward(&Color::BLACK), Square::H7);
+        assert_eq!(Square::A1.forward(&Color::White), Square::A2);
+        assert_eq!(Square::B2.forward(&Color::White), Square::B3);
+        assert_eq!(Square::B2.forward(&Color::Black), Square::B1);
+        assert_eq!(Square::C3.forward(&Color::White), Square::C4);
+        assert_eq!(Square::C3.forward(&Color::Black), Square::C2);
+        assert_eq!(Square::D4.forward(&Color::White), Square::D5);
+        assert_eq!(Square::D4.forward(&Color::Black), Square::D3);
+        assert_eq!(Square::E5.forward(&Color::White), Square::E6);
+        assert_eq!(Square::E5.forward(&Color::Black), Square::E4);
+        assert_eq!(Square::F6.forward(&Color::White), Square::F7);
+        assert_eq!(Square::F6.forward(&Color::Black), Square::F5);
+        assert_eq!(Square::G7.forward(&Color::White), Square::G8);
+        assert_eq!(Square::G7.forward(&Color::Black), Square::G6);
+        assert_eq!(Square::H8.forward(&Color::Black), Square::H7);
+    }
+
+    #[test]
+    fn to_string() {
+        assert_eq!(Square::A1.to_string(), "a1");
+        assert_eq!(Square::A2.to_string(), "a2");
+        assert_eq!(Square::A3.to_string(), "a3");
+    }
+
+    #[test]
+    fn from_string() {
+        assert_eq!(Square::from_string(&"aa"), None);
+        assert_eq!(Square::from_string(&"a1").unwrap(), Square::A1);
+        assert_eq!(Square::from_string(&"b1").unwrap(), Square::B1);
+        assert_eq!(Square::from_string(&"c1").unwrap(), Square::C1);
     }
 }

@@ -1,4 +1,5 @@
 use crate::types::square::Square;
+use crate::types::color::Color;
 
 pub struct BitboardIterator {
     bitboard: Bitboard
@@ -9,7 +10,7 @@ impl Iterator for BitboardIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.bitboard.0 > 0 {
-            let square = Square(self.bitboard.0.trailing_zeros() as i8);
+            let square = self.bitboard.to_square();
             self.bitboard.0 &= self.bitboard.0 - 1;
             return Some(square);
         }
@@ -23,12 +24,15 @@ pub struct Bitboard(pub u64);
 impl Bitboard {
     pub const ALL: Bitboard = Bitboard(0xFFFFFFFFFFFFFFFFu64);
     pub const EMPTY: Bitboard = Bitboard(0u64);
+    pub const PROMOTION: [Bitboard; Color::NUM_COLORS] = [Bitboard::RANK_7, Bitboard::RANK_2];
 
-    pub const FILE_A: Bitboard = Bitboard(0xFFu64);
-    pub const FILE_H: Bitboard = Bitboard(0xFFu64 << 56);
+    pub const FILE_A: Bitboard = Bitboard(0x101010101010101u64);
+    pub const FILE_H: Bitboard = Bitboard(0x8080808080808080u64);
 
-    pub const RANK_1: Bitboard = Bitboard(0xFFu64 << 56);
-    pub const RANK_8: Bitboard = Bitboard(0xFFu64 << 56);
+    pub const RANK_1: Bitboard = Bitboard(0xFFu64);
+    pub const RANK_2: Bitboard = Bitboard(0xFF00u64);
+    pub const RANK_7: Bitboard = Bitboard(0xFF000000000000u64);
+    pub const RANK_8: Bitboard = Bitboard(0xFF00000000000000u64);
 
     pub const A1: Bitboard = Bitboard(1u64 << 0);
     pub const B1: Bitboard = Bitboard(1u64 << 1);
@@ -103,8 +107,38 @@ impl Bitboard {
     pub const H8: Bitboard = Bitboard(1u64 << 63);
 
     #[inline]
+    pub fn new(bitboard: u64) -> Self {
+        Bitboard(bitboard)
+    }
+
+    #[inline]
+    pub fn to_usize(&self) -> usize {
+        self.0 as usize
+    }
+
+    #[inline]
+    pub fn to_u64(&self) -> u64 {
+        self.0
+    }
+
+    #[inline]
     pub fn from_square(square: &Square) -> Self {
         Bitboard(1u64 << square.to_u64())
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.0 == 0
+    }
+
+    #[inline]
+    pub fn is_not_empty(&self) -> bool {
+        self.0 != 0
+    }
+
+    #[inline]
+    pub fn one_element(&self) -> bool {
+        (self.0 & (self.0 - 1)) == 0
     }
 
     #[inline]
@@ -113,33 +147,53 @@ impl Bitboard {
     }
 
     #[inline]
+    pub fn clear(&mut self) {
+        self.0 = 0;
+    }
+
+    #[inline]
     pub fn intersect(&self, other: &Self) -> Self {
         Bitboard(self.0 & other.0)
     }
 
     #[inline]
-    pub fn add(&self, other: &Self) -> Self {
+    pub fn union(&self, other: &Self) -> Self {
         Bitboard(self.0 | other.0)
     }
 
     #[inline]
-    pub fn remove(&self, other: &Self) -> Self {
+    pub fn difference(&self, other: &Self) -> Self {
         Bitboard(self.0 & !other.0)
     }
 
     #[inline]
-    pub fn invert(&self) -> Self {
+    pub fn invert(&self, other: &Self) -> Self {
+        Bitboard(self.0 ^ other.0)
+    }
+
+    #[inline]
+    pub fn reverse(&self) -> Self {
         Bitboard(!self.0)
     }
 
     #[inline]
-    pub fn add_square(&self, other: &Square) -> Self {
-        self.add(&Bitboard::from_square(other))
+    pub fn with_square(&self, square: &Square) -> Self {
+        self.union(&Bitboard::from_square(square))
     }
 
     #[inline]
     pub fn to_string(&self) -> String {
-        format!("{:b}", self.0)
+        format!("{:#066b}", self.0)
+    }
+
+    #[inline]
+    pub fn has(&self, other: &Bitboard) -> bool {
+        self.intersect(other).is_not_empty()
+    }
+
+    #[inline]
+    pub fn to_square(&self) -> Square {
+        Square(self.0.trailing_zeros() as i8)
     }
 
     pub fn iterator(self) -> BitboardIterator {

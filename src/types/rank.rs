@@ -38,18 +38,27 @@ impl Rank {
     }
 
     #[inline]
-    pub fn invert(&self) -> Rank {
+    pub fn reverse(&self) -> Rank {
         Rank(self.0 ^ Rank::RANK_8.0)
     }
 
     #[inline]
     pub fn relative(&self, color: &Color) -> Rank {
-        Rank(self.0 ^ (Rank::RANK_8.0 * color.0))
+        Rank(self.0 ^ (Rank::RANK_8.0 * color.to_i8()))
     }
 
     #[inline]
     pub fn distance(&self, other: &Self) -> u8 {
         (self.0 - other.0).abs() as u8
+    }
+
+    #[inline]
+    pub fn from_char(input: char) -> Option<Rank> {
+        return if input >= '1' && input <= '8' {
+            Some(Rank(u8::from(input as u8 - b'1') as i8))
+        } else {
+            None
+        };
     }
 }
 
@@ -69,5 +78,17 @@ mod test {
         assert_eq!(Rank::RANK_8.to_char(), '8');
     }
 
+    #[test]
+    fn from_char() {
+        assert_eq!(Rank::from_char('-').is_none(), true);
+        assert_eq!(Rank::from_char('1').unwrap(), Rank::RANK_1);
+        assert_eq!(Rank::from_char('2').unwrap(), Rank::RANK_2);
+        assert_eq!(Rank::from_char('3').unwrap(), Rank::RANK_3);
+        assert_eq!(Rank::from_char('4').unwrap(), Rank::RANK_4);
+        assert_eq!(Rank::from_char('5').unwrap(), Rank::RANK_5);
+        assert_eq!(Rank::from_char('6').unwrap(), Rank::RANK_6);
+        assert_eq!(Rank::from_char('7').unwrap(), Rank::RANK_7);
+        assert_eq!(Rank::from_char('8').unwrap(), Rank::RANK_8);
+    }
 }
 

@@ -8,4 +8,3 @@ pub mod move_type;
 pub mod piece_type;
 pub mod rank;
 pub mod square;
-pub mod zobrist_key;

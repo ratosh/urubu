@@ -9,10 +9,10 @@ impl MoveType {
     pub const PASSANT: MoveType = MoveType(1);
     pub const CASTLING: MoveType = MoveType(2);
 
-    pub const PROMOTION_KNIGHT: MoveType = MoveType(3);
-    pub const PROMOTION_BISHOP: MoveType = MoveType(4);
-    pub const PROMOTION_ROOK: MoveType = MoveType(5);
-    pub const PROMOTION_QUEEN: MoveType = MoveType(6);
+    pub const PROMOTION_KNIGHT: MoveType = MoveType(4);
+    pub const PROMOTION_BISHOP: MoveType = MoveType(5);
+    pub const PROMOTION_ROOK: MoveType = MoveType(6);
+    pub const PROMOTION_QUEEN: MoveType = MoveType(7);
 
     #[inline]
     pub fn to_usize(&self) -> usize {
@@ -25,9 +25,14 @@ impl MoveType {
     }
 
     #[inline]
+    pub fn is_promotion(&self) -> bool {
+        self.0 & MoveType::PROMOTION_KNIGHT.0 != 0
+    }
+
+    #[inline]
     pub fn promoted_piece_type(&self) -> PieceType {
-        if self.0 >= MoveType::PROMOTION_KNIGHT.0 {
-            PieceType(self.0  - 1)
+        if self.is_promotion() {
+            PieceType(self.0 - 2)
         } else {
             PieceType::NONE
         }
@@ -36,6 +41,11 @@ impl MoveType {
     #[inline]
     pub fn is_castling(&self) -> bool {
         self.0 == MoveType::CASTLING.0
+    }
+
+    #[inline]
+    pub fn is_passant(&self) -> bool {
+        self.0 == MoveType::PASSANT.0
     }
 
     #[inline]

@@ -1,11 +1,12 @@
+use crate::types::color::Color;
+
 #[derive(PartialEq, PartialOrd, Copy, Clone, Debug)]
 pub struct PieceType(pub u8);
 
 impl PieceType {
-
     pub const NUM_PIECE_TYPES: usize = 7;
 
-    pub const TYPE_ARRAY: [PieceType; PieceType::NUM_PIECE_TYPES] = [
+    pub const PIECE_TYPES: [PieceType; PieceType::NUM_PIECE_TYPES] = [
         PieceType::NONE,
         PieceType::PAWN,
         PieceType::KNIGHT,
@@ -13,7 +14,7 @@ impl PieceType {
         PieceType::ROOK,
         PieceType::QUEEN,
         PieceType::KING];
-    pub const REPRESENTATION: [char; 7] = ['-', 'p', 'n', 'b', 'r', 'q', 'k'];
+    pub const REPRESENTATION: [char; PieceType::NUM_PIECE_TYPES] = ['-', 'p', 'n', 'b', 'r', 'q', 'k'];
 
     pub const NONE: PieceType = PieceType(0);
     pub const PAWN: PieceType = PieceType(1);
@@ -32,6 +33,33 @@ impl PieceType {
     pub fn to_char(&self) -> char {
         PieceType::REPRESENTATION[self.to_usize()]
     }
+
+    #[inline]
+    pub fn to_char_colored(&self, color: Color) -> char {
+        if color == Color::White {
+            self.to_char().to_ascii_uppercase()
+        } else {
+            self.to_char()
+        }
+    }
+
+    #[inline]
+    pub fn from_char(c: char) -> (PieceType, Color) {
+        let lower_c = c.to_lowercase().nth(0).unwrap();
+        if let Some(index) = PieceType::REPRESENTATION.iter().position(|&s| s == lower_c) {
+            return (PieceType(index as u8), PieceType::get_color(c));
+        }
+        return (PieceType::NONE, Color::White);
+    }
+
+    #[inline]
+    fn get_color(c: char) -> Color {
+        if c.is_uppercase() {
+            Color::White
+        } else {
+            Color::Black
+        }
+    }
 }
 
 #[cfg(test)]
@@ -47,6 +75,5 @@ mod test {
         assert_eq!(PieceType::QUEEN.to_char(), 'q');
         assert_eq!(PieceType::KING.to_char(), 'k');
     }
-
 }
 
