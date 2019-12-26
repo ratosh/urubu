@@ -20,18 +20,18 @@ impl ZobristKey {
     }
 
     #[inline]
-    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, square_from: &Square, square_to: &Square) {
+    pub fn move_piece(&mut self, color: Color, piece_type: PieceType, square_from: Square, square_to: Square) {
         self.change_piece(color, piece_type, square_from);
         self.change_piece(color, piece_type, square_to);
     }
 
     #[inline]
-    pub fn change_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
+    pub fn change_piece(&mut self, color: Color, piece_type: PieceType, square: Square) {
         self.0 ^= PSQT[color.to_usize()][piece_type.to_usize()][square.to_usize()];
     }
 
     #[inline]
-    pub fn set_ep(&mut self, square: &Square) {
+    pub fn set_ep(&mut self, square: Square) {
         self.0 ^= EP[square.to_file().to_usize()];
     }
 
@@ -54,9 +54,9 @@ mod test {
     fn move_piece() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.move_piece(&Color::White, &PieceType::PAWN, &Square::A1, &Square::A2);
+        key.move_piece(Color::White, PieceType::PAWN, Square::A1, Square::A2);
         let k1 = key.to_u64();
-        key.move_piece(&Color::White, &PieceType::PAWN, &Square::A2, &Square::A1);
+        key.move_piece(Color::White, PieceType::PAWN, Square::A2, Square::A1);
         let k2 = key.to_u64();
         assert_ne!(init_key, k1);
         assert_eq!(init_key, k2);
@@ -66,9 +66,9 @@ mod test {
     fn change_piece() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.change_piece(&Color::White, &PieceType::PAWN, &Square::A1);
+        key.change_piece(Color::White, PieceType::PAWN, Square::A1);
         let k1 = key.to_u64();
-        key.change_piece(&Color::White, &PieceType::PAWN, &Square::A1);
+        key.change_piece(Color::White, PieceType::PAWN, Square::A1);
         let k2 = key.to_u64();
         assert_ne!(init_key, k1);
         assert_eq!(init_key, k2);
@@ -78,9 +78,9 @@ mod test {
     fn set_ep() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.set_ep(&Square::A2);
+        key.set_ep(Square::A2);
         let k1 = key.to_u64();
-        key.set_ep(&Square::A2);
+        key.set_ep(Square::A2);
         let k2 = key.to_u64();
         assert_ne!(init_key, k1);
         assert_eq!(init_key, k2);

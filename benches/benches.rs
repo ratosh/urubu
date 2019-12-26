@@ -17,7 +17,7 @@ fn color_invert(c: &mut Criterion) {
 
 fn square_forward(c: &mut Criterion) {
     c.bench_function("square_forward", |b| {
-        b.iter(|| Square::A1.forward(&Color::White));
+        b.iter(|| Square::A1.forward(Color::White));
     });
 }
 

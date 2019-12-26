@@ -79,7 +79,7 @@ impl CastlingIndex {
     }
 
     #[inline]
-    pub fn from_color_side(color: &Color, castling_side: &CastlingSide) -> Self {
+    pub fn from_color_side(color: Color, castling_side: &CastlingSide) -> Self {
         CastlingIndex::unsafe_creation(castling_side.to_u32() + 2 * color.to_u32())
     }
 
@@ -142,7 +142,7 @@ impl CastlingRights {
     }
 
     #[inline]
-    pub fn color_filter(&self, color: &Color) -> Self {
+    pub fn color_filter(&self, color: Color) -> Self {
         CastlingRights(self.0 & (CastlingRights::WHITE_RIGHTS.0 << (color.to_u8() * 2)))
     }
 
@@ -229,12 +229,12 @@ mod testing {
 
     #[test]
     fn filter() {
-        assert_eq!(CastlingRights::WHITE_OO.color_filter(&Color::White), CastlingRights::WHITE_OO);
-        assert_eq!(CastlingRights::WHITE_OOO.color_filter(&Color::White), CastlingRights::WHITE_OOO);
-        assert_eq!(CastlingRights::WHITE_OO.color_filter(&Color::Black), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::WHITE_OOO.color_filter(&Color::Black), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(&Color::White), CastlingRights::WHITE_RIGHTS);
-        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(&Color::Black), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::WHITE_OO.color_filter(Color::White), CastlingRights::WHITE_OO);
+        assert_eq!(CastlingRights::WHITE_OOO.color_filter(Color::White), CastlingRights::WHITE_OOO);
+        assert_eq!(CastlingRights::WHITE_OO.color_filter(Color::Black), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::WHITE_OOO.color_filter(Color::Black), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(Color::White), CastlingRights::WHITE_RIGHTS);
+        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(Color::Black), CastlingRights::BLACK_RIGHTS);
     }
 
     #[test]

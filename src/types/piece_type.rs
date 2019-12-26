@@ -1,4 +1,6 @@
 use crate::types::color::Color;
+use std::ops;
+use crate::types::bitboard::Bitboard;
 
 #[derive(PartialEq, PartialOrd, Copy, Clone, Debug)]
 pub struct PieceType(pub u8);
@@ -59,6 +61,14 @@ impl PieceType {
         } else {
             Color::Black
         }
+    }
+}
+
+impl ops::Index<PieceType> for [Bitboard] {
+    type Output = Bitboard;
+
+    fn index(&self, piece_type: PieceType) -> &Bitboard {
+        &self[piece_type.to_usize()]
     }
 }
 

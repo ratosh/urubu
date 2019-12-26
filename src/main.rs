@@ -8,7 +8,7 @@ fn main() {
     println!("Hello, world!");
     let mut board = Board::default();
     let before_time = Instant::now();
-    let nodes = Perft::new().perft(&mut board, 7);
+    let nodes = Perft::new().perft(&mut board, 6);
     let after_time = Instant::now();
     let dur = after_time.duration_since(before_time).as_millis() as u64;
     println!("perft result {}", nodes);

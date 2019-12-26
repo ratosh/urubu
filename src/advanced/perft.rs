@@ -24,15 +24,15 @@ impl Perft {
             return;
         }
         self.move_list.start_ply();
-        self.move_list.generate_quiets(board, &mut self.attack_info);
-        self.move_list.generate_noisy(board, &mut self.attack_info);
+        self.move_list.generate_quiets(&board, &mut self.attack_info);
+        self.move_list.generate_noisy(&board, &mut self.attack_info);
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            let mut clone = board.clone();
-            if clone.do_move(&board_move) {
-                println!("{} -> {}", board_move.to_string(), self.perft(&mut clone, depth - 1));
+            if board.do_move(board_move) {
+                println!("{} -> {}", board_move.to_string(), self.perft(board, depth - 1));
             }
+            board.undo_move(board_move);
         }
         self.move_list.end_ply();
     }
@@ -42,20 +42,22 @@ impl Perft {
             return 1;
         }
         self.move_list.start_ply();
-        self.move_list.generate_quiets(board, &mut self.attack_info);
-        self.move_list.generate_noisy(board, &mut self.attack_info);
+        self.move_list.generate_quiets(&board, &mut self.attack_info);
+        self.move_list.generate_noisy(&board, &mut self.attack_info);
 
         let mut result = 0;
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            let mut clone = board.clone();
-            if clone.do_move(&board_move) {
-                result += self.perft(&mut clone, depth - 1);
+            if board.do_move(board_move) {
+                result += self.perft(board, depth - 1);
                 self.valid_moves += 1;
             } else {
+                println!("{}", &board.position.piece_type(board_move.square_to()).to_char());
+                println!("{}", &board_move.to_string());
                 self.invalid_moves += 1;
             }
+            board.undo_move(board_move);
         }
         self.move_list.end_ply();
 
@@ -108,8 +110,8 @@ mod test {
     }
 
     #[test]
-    #[ignore]
+//    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 5);
+        check_perft_file("G:/chess/epds/random.perft", 6);
     }
 }

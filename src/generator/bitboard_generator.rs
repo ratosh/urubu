@@ -73,8 +73,8 @@ pub fn generate_bitboard_file() -> io::Result<()> {
 #[inline]
 fn init_knight_moves() -> [Bitboard; Square::NUM_SQUARES] {
     let mut res = [Bitboard::EMPTY; Square::NUM_SQUARES];
-    for sq in Square::SQUARES.iter() {
-        res[sq.to_usize()] = slide_moves(sq, &KNIGHT_MOVE_STEPS, &Bitboard::ALL);
+    for &sq in Square::SQUARES.iter() {
+        res[sq.to_usize()] = slide_moves(sq, &KNIGHT_MOVE_STEPS, Bitboard::ALL);
     }
     res
 }
@@ -82,8 +82,8 @@ fn init_knight_moves() -> [Bitboard; Square::NUM_SQUARES] {
 #[inline]
 fn init_king_moves() -> [Bitboard; Square::NUM_SQUARES] {
     let mut res = [Bitboard::EMPTY; Square::NUM_SQUARES];
-    for square in Square::SQUARES.iter() {
-        res[square.to_usize()] = slide_moves(square, &KING_MOVE_STEPS, &Bitboard::ALL);
+    for &square in Square::SQUARES.iter() {
+        res[square.to_usize()] = slide_moves(square, &KING_MOVE_STEPS, Bitboard::ALL);
     }
     res
 }
@@ -91,8 +91,8 @@ fn init_king_moves() -> [Bitboard; Square::NUM_SQUARES] {
 #[inline]
 fn init_pseudo_bishop() -> [Bitboard; Square::NUM_SQUARES] {
     let mut res = [Bitboard::EMPTY; Square::NUM_SQUARES];
-    for square in Square::SQUARES.iter() {
-        res[square.to_usize()] = slide_moves(square, &BISHOP_MOVE_STEPS, &Bitboard::EMPTY);
+    for &square in Square::SQUARES.iter() {
+        res[square.to_usize()] = slide_moves(square, &BISHOP_MOVE_STEPS, Bitboard::EMPTY);
     }
     res
 }
@@ -100,8 +100,8 @@ fn init_pseudo_bishop() -> [Bitboard; Square::NUM_SQUARES] {
 #[inline]
 fn init_pseudo_rook() -> [Bitboard; Square::NUM_SQUARES] {
     let mut res = [Bitboard::EMPTY; Square::NUM_SQUARES];
-    for square in Square::SQUARES.iter() {
-        res[square.to_usize()] = slide_moves(square, &ROOK_MOVE_STEPS, &Bitboard::EMPTY);
+    for &square in Square::SQUARES.iter() {
+        res[square.to_usize()] = slide_moves(square, &ROOK_MOVE_STEPS, Bitboard::EMPTY);
     }
     res
 }
@@ -109,7 +109,7 @@ fn init_pseudo_rook() -> [Bitboard; Square::NUM_SQUARES] {
 #[inline]
 fn init_magic() -> [Bitboard; Magic::SIZE] {
     let mut result = [Bitboard::EMPTY; Magic::SIZE];
-    for square in Square::SQUARES.iter() {
+    for &square in Square::SQUARES.iter() {
         get_magic(square, &BISHOP_MOVE_STEPS, &Magic::BISHOP[square.to_usize()], Magic::BISHOP_SHIFT, &mut result);
         get_magic(square, &ROOK_MOVE_STEPS, &Magic::ROOK[square.to_usize()], Magic::ROOK_SHIFT, &mut result);
     }
@@ -137,23 +137,23 @@ fn init_neighbour() -> [Bitboard; Square::NUM_SQUARES] {
         let mut possible_neighbours = Bitboard::EMPTY;
         let west_square = square.offset(WEST);
         if west_square.is_some() {
-            possible_neighbours = Bitboard::from_square(&west_square.unwrap());
+            possible_neighbours = Bitboard::from_square(west_square.unwrap());
         }
         let east_square = square.offset(EAST);
         if east_square.is_some() {
-            possible_neighbours = possible_neighbours.union(&Bitboard::from_square(&east_square.unwrap()));
+            possible_neighbours = possible_neighbours.union(Bitboard::from_square(east_square.unwrap()));
         }
-        result[square.to_usize()] = bitboard_bounds.intersect(&possible_neighbours);
+        result[square.to_usize()] = bitboard_bounds.intersect(possible_neighbours);
     }
     result
 }
 
 #[inline]
-pub fn get_magic(square: &Square, move_steps: &[i8], magic: &Magic, shift: usize, attacks: &mut [Bitboard]) {
+pub fn get_magic(square: Square, move_steps: &[i8], magic: &Magic, shift: usize, attacks: &mut [Bitboard]) {
     let mut mutable_subset = Bitboard::EMPTY;
     let mut over = false;
     while !over {
-        let attack = slide_moves(square, move_steps, &mutable_subset);
+        let attack = slide_moves(square, move_steps, mutable_subset);
         let idx = ((magic.factor.wrapping_mul(mutable_subset.to_u64()) >> (Square::NUM_SQUARES - shift) as u64) + magic.offset) as usize;
         attacks[idx] = attack;
         mutable_subset = Bitboard::new((mutable_subset.to_u64().wrapping_sub(magic.mask)) & magic.mask);
@@ -164,23 +164,23 @@ pub fn get_magic(square: &Square, move_steps: &[i8], magic: &Magic, shift: usize
 fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Square::NUM_SQUARES];
     let direction_array: [[i8; 1]; 4] = [[7], [9], [1], [8]];
-    let border_array = [Bitboard::FILE_A.union(&Bitboard::RANK_8),
-        Bitboard::FILE_H.union(&Bitboard::RANK_8),
+    let border_array = [Bitboard::FILE_A.union(Bitboard::RANK_8),
+        Bitboard::FILE_H.union(Bitboard::RANK_8),
         Bitboard::FILE_H,
         Bitboard::RANK_8];
-    for start_square in Square::SQUARES.iter() {
+    for &start_square in Square::SQUARES.iter() {
         for (index, direction) in direction_array.iter().enumerate() {
             let border = border_array[index];
-            let mut moving_square: Option<Square> = Some(*start_square);
-            let mut bitboard = Bitboard::from_square(&start_square);
-            while bitboard.intersect(&border) == Bitboard::EMPTY {
+            let mut moving_square: Option<Square> = Some(start_square);
+            let mut bitboard = Bitboard::from_square(start_square);
+            while bitboard.intersect(border) == Bitboard::EMPTY {
                 moving_square = moving_square.unwrap().offset(direction[0 as usize]);
                 if moving_square.is_none() {
                     break;
                 }
                 let final_square = moving_square.unwrap();
-                bitboard = Bitboard::from_square(&final_square);
-                let between = slide_moves(start_square, direction, &bitboard.union(&border)).difference(&bitboard);
+                bitboard = Bitboard::from_square(final_square);
+                let between = slide_moves(start_square, direction, bitboard.union(border)).difference(bitboard);
                 result[start_square.to_usize()][final_square.to_usize()] = between;
                 result[final_square.to_usize()][start_square.to_usize()] = between;
             }
@@ -189,26 +189,26 @@ fn init_between() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
     result
 }
 
-fn slide_moves(square: &Square, slide_values: &[i8], limit: &Bitboard) -> Bitboard {
+fn slide_moves(square: Square, slide_values: &[i8], limit: Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     for slide in slide_values {
         let moves = slide_move(square, *slide, limit);
-        result = result.union(&moves);
+        result = result.union(moves);
     }
     return result;
 }
 
-fn slide_move(square: &Square, slide_value: i8, limit: &Bitboard) -> Bitboard {
+fn slide_move(square: Square, slide_value: i8, limit: Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
-    let mut old_square = *square;
+    let mut old_square = square;
     while let Some(new_square) = old_square.offset(slide_value) {
         if old_square.square_dist(&new_square) > 2 {
             break;
         }
 
-        result = result.with_square(&new_square);
+        result = result.with_square(new_square);
 
-        if limit.is_set(&new_square) {
+        if limit.is_set(new_square) {
             break;
         }
         old_square = new_square;
@@ -218,23 +218,23 @@ fn slide_move(square: &Square, slide_value: i8, limit: &Bitboard) -> Bitboard {
 
 fn init_pawn_attacks() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
-    for square in Square::SQUARES.iter() {
-        result[Color::White.to_usize()][square.to_usize()] = init_pawn_attack(&square, &Color::White);
-        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_attack(&square, &Color::Black);
+    for &square in Square::SQUARES.iter() {
+        result[Color::White.to_usize()][square.to_usize()] = init_pawn_attack(square, Color::White);
+        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_attack(square, Color::Black);
     }
     return result;
 }
 
-fn init_pawn_attack(square: &Square, color: &Color) -> Bitboard {
+fn init_pawn_attack(square: Square, color: Color) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     if square.to_file() != file::File::FILE_A {
         if let Some(final_square) = square.offset(PAWN_ATTACK_LEFT[color.to_usize()]) {
-            result = result.union(&Bitboard::from_square(&final_square));
+            result = result.union(Bitboard::from_square(final_square));
         }
     }
     if square.to_file() != file::File::FILE_H {
         if let Some(final_square) = square.offset(PAWN_ATTACK_RIGHT[color.to_usize()]) {
-            result = result.union(&Bitboard::from_square(&final_square));
+            result = result.union(Bitboard::from_square(final_square));
         }
     }
     return result;
@@ -242,35 +242,35 @@ fn init_pawn_attack(square: &Square, color: &Color) -> Bitboard {
 
 fn init_pawn_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
-    for square in Square::SQUARES.iter() {
-        result[Color::White.to_usize()][square.to_usize()] = init_pawn_move(&square, &Color::White);
-        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_move(&square, &Color::Black);
+    for &square in Square::SQUARES.iter() {
+        result[Color::White.to_usize()][square.to_usize()] = init_pawn_move(square, Color::White);
+        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_move(square, Color::Black);
     }
     return result;
 }
 
-fn init_pawn_move(square: &Square, color: &Color) -> Bitboard {
+fn init_pawn_move(square: Square, color: Color) -> Bitboard {
     let forward = square.offset(PAWN_FORWARD[color.to_usize()]);
     if forward != None {
-        return Bitboard::from_square(&forward.unwrap());
+        return Bitboard::from_square(forward.unwrap());
     }
     return Bitboard::EMPTY;
 }
 
 fn init_pawn_double_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
-    for square in Square::SQUARES.iter() {
-        result[Color::White.to_usize()][square.to_usize()] = init_pawn_double_move(&square, &Color::White);
-        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_double_move(&square, &Color::Black);
+    for &square in Square::SQUARES.iter() {
+        result[Color::White.to_usize()][square.to_usize()] = init_pawn_double_move(square, Color::White);
+        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_double_move(square, Color::Black);
     }
     return result;
 }
 
-fn init_pawn_double_move(square: &Square, color: &Color) -> Bitboard {
-    if square.to_rank().relative(&color) == Rank::RANK_2 {
+fn init_pawn_double_move(square: Square, color: Color) -> Bitboard {
+    if square.to_rank().relative(color) == Rank::RANK_2 {
         let forward = square.offset(PAWN_FORWARD[color.to_usize()] * 2);
         if forward != None {
-            return Bitboard::from_square(&forward.unwrap());
+            return Bitboard::from_square(forward.unwrap());
         }
     }
     return Bitboard::EMPTY;
@@ -279,29 +279,29 @@ fn init_pawn_double_move(square: &Square, color: &Color) -> Bitboard {
 fn init_pinned_mask() -> [[Bitboard; Square::NUM_SQUARES]; Square::NUM_SQUARES] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Square::NUM_SQUARES];
     let direction_array: [[i8; 1]; 8] = [[7], [9], [1], [8], [-7], [-9], [-1], [-8]];
-    let border_array = [Bitboard::FILE_A.union(&Bitboard::RANK_8),
-        Bitboard::FILE_H.union(&Bitboard::RANK_8),
+    let border_array = [Bitboard::FILE_A.union(Bitboard::RANK_8),
+        Bitboard::FILE_H.union(Bitboard::RANK_8),
         Bitboard::FILE_H,
         Bitboard::RANK_8,
-        Bitboard::FILE_H.union(&Bitboard::RANK_1),
-        Bitboard::FILE_A.union(&Bitboard::RANK_1),
+        Bitboard::FILE_H.union(Bitboard::RANK_1),
+        Bitboard::FILE_A.union(Bitboard::RANK_1),
         Bitboard::FILE_A,
         Bitboard::RANK_1];
-    for start_square in Square::SQUARES.iter() {
+    for &start_square in Square::SQUARES.iter() {
         for (index, direction) in direction_array.iter().enumerate() {
             let border = border_array[index];
-            let mut moving_square: Option<Square> = Some(*start_square);
+            let mut moving_square: Option<Square> = Some(start_square);
             let mut bitboard = Bitboard::EMPTY;
-            let pinned_mask = slide_moves(start_square, direction, &border);
+            let pinned_mask = slide_moves(start_square, direction, border);
             if pinned_mask.is_not_empty() {
-                while bitboard.intersect(&border).is_empty() {
+                while bitboard.intersect(border).is_empty() {
                     moving_square = moving_square.unwrap().offset(direction[0 as usize]);
                     if moving_square.is_none() {
                         break;
                     }
                     let final_square = moving_square.unwrap();
                     result[start_square.to_usize()][final_square.to_usize()] = pinned_mask;
-                    bitboard = Bitboard::from_square(&final_square);
+                    bitboard = Bitboard::from_square(final_square);
                 }
             }
         }
