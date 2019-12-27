@@ -1,10 +1,10 @@
 use crate::types::board_move::BoardMove;
-use crate::advanced::game::GAME_MAX_LENGTH;
+use crate::advanced::game::Game;
 
 pub struct MoveList {
     current_ply: usize,
-    move_list: [BoardMove; GAME_MAX_LENGTH],
-    move_score: [u64; GAME_MAX_LENGTH],
+    move_list: [BoardMove; Game::MAX_LENGTH],
+    move_score: [u64; Game::MAX_LENGTH],
     next_to_move: [usize; MoveList::MAX_PLIES],
     next_to_generate: [usize; MoveList::MAX_PLIES],
 }
@@ -16,8 +16,8 @@ impl MoveList {
     pub fn new() -> Self {
         MoveList {
             current_ply: 0,
-            move_list: [BoardMove::NONE; GAME_MAX_LENGTH],
-            move_score: [0; GAME_MAX_LENGTH],
+            move_list: [BoardMove::NONE; Game::MAX_LENGTH],
+            move_score: [0; Game::MAX_LENGTH],
             next_to_move: [0; MoveList::MAX_PLIES],
             next_to_generate: [0; MoveList::MAX_PLIES],
         }

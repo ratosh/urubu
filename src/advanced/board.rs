@@ -8,7 +8,7 @@ use crate::types::color::Color;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Board {
     pub castling_rights: CastlingRights,
     pub ep_square: Option<Square>,
@@ -122,9 +122,14 @@ impl Board {
         result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] = CastlingRights::BLACK_OO;
         result.castling_rights_masks[result.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OOO;
 
-        result.compute_zobrist();
-        result.initial_pass();
+        result.setup();
         return result;
+    }
+
+    pub fn setup(&mut self) {
+        self.compute_zobrist();
+        self.first_pass();
+        self.second_pass();
     }
 
     pub fn compute_king_square(&mut self) {
