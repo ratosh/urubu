@@ -53,8 +53,6 @@ impl Perft {
                 result += self.perft(board, depth - 1);
                 self.valid_moves += 1;
             } else {
-                println!("{}", &board.position.piece_type(board_move.square_to()).to_char());
-                println!("{}", &board_move.to_string());
                 self.invalid_moves += 1;
             }
             board.undo_move(board_move);
