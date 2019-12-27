@@ -1,6 +1,6 @@
 use crate::types::color::Color;
 
-#[derive(PartialEq, PartialOrd, Copy, Clone, Debug)]
+#[derive(PartialEq, Eq, PartialOrd, Copy, Clone, Debug, Hash)]
 pub struct PieceType(pub u8);
 
 impl PieceType {

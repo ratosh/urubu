@@ -5,7 +5,7 @@ use crate::types::square::Square;
 use crate::types::bitboard::Bitboard;
 use crate::types::piece_type::PieceType;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct PositionState {
     pub zkey: ZobristKey,
     pub zkey_pawn: ZobristKey,

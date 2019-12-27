@@ -1,6 +1,6 @@
 use std::mem::transmute;
 
-#[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug)]
+#[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug, Hash)]
 pub enum Color {
     White = 0,
     Black = 1,
