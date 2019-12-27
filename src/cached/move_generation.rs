@@ -1,6 +1,6 @@
-use crate::advanced::attack_info::AttackInfo;
-use crate::advanced::board::Board;
-use crate::advanced::move_list::MoveList;
+use crate::cached::attack_info::AttackInfo;
+use crate::cached::board::Board;
+use crate::types::move_list::MoveList;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
 use crate::types::color::Color;

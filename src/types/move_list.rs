@@ -1,5 +1,5 @@
 use crate::types::board_move::BoardMove;
-use crate::advanced::game::GAME_MAX_LENGTH;
+use crate::types::game::GAME_MAX_LENGTH;
 
 pub struct MoveList {
     current_ply: usize,

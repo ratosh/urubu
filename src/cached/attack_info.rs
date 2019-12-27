@@ -1,5 +1,5 @@
-use crate::advanced::board::Board;
 use crate::advanced::zobrist_key::ZobristKey;
+use crate::cached::board::Board;
 use crate::types::bitboard::Bitboard;
 use crate::types::color::Color;
 use crate::types::piece_type::PieceType;

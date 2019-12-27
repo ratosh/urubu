@@ -1,4 +1,4 @@
-use crate::advanced::board::Board;
+use crate::cached::board::Board;
 use crate::types::square::Square;
 use crate::types::file::File;
 use crate::types::rank::Rank;

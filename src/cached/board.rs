@@ -394,6 +394,7 @@ impl Board {
         self.set_check_bitboard(&color);
     }
 
+    #[inline]
     fn set_pinned(&mut self, color: &Color) {
         let their_color = color.reverse();
         if self.slider_pieces(&their_color).is_not_empty() {
@@ -418,6 +419,7 @@ impl Board {
         }
     }
 
+    #[inline]
     fn update_danger_bitboard(&mut self, color: &Color) {
         let king_square = self.king_square(color);
 
@@ -437,6 +439,7 @@ impl Board {
                 .union(&self.danger_bitboard[color.to_usize()][PieceType::ROOK.to_usize()])
     }
 
+    #[inline]
     fn set_check_bitboard(&mut self, color: &Color) {
         let our_color = color;
         let their_color = our_color.reverse();
@@ -486,7 +489,7 @@ impl Debug for Board {
 
 #[cfg(test)]
 mod test {
-    use crate::advanced::board::Board;
+    use crate::cached::board::Board;
     use crate::types::bitboard::Bitboard;
     use crate::types::color::Color;
     use crate::types::piece_type::PieceType;

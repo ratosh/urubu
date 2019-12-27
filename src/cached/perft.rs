@@ -1,6 +1,6 @@
-use crate::advanced::attack_info::AttackInfo;
-use crate::advanced::board::Board;
-use crate::advanced::move_list::MoveList;
+use crate::cached::attack_info::AttackInfo;
+use crate::cached::board::Board;
+use crate::types::move_list::MoveList;
 
 pub struct Perft {
     attack_info: AttackInfo,
@@ -69,8 +69,8 @@ impl Perft {
 mod test {
     use std::fs::File;
     use std::io::{BufReader, BufRead};
-    use crate::advanced::board::Board;
-    use crate::advanced::perft::Perft;
+    use crate::cached::board::Board;
+    use crate::cached::perft::Perft;
     use crate::types::board_move::BoardMove;
     use crate::types::square::Square;
 

@@ -1,4 +1,5 @@
 pub mod advanced;
-pub mod types;
+pub mod cached;
 pub mod search;
+pub mod types;
 pub mod utils;
