@@ -7,10 +7,10 @@ use urubu::types::square::Square;
 fn main() {
     println!("Hello, world!");
     let mut board = Board::default();
-    let before_time = Instant::now();
+    let timer = Instant::now();
     let nodes = Perft::new().perft(&mut board, 6);
-    let after_time = Instant::now();
-    let dur = after_time.duration_since(before_time).as_millis() as u64;
+    let duration = timer.elapsed();
+    let dur = duration.as_millis() as u64;
     println!("perft result {}", nodes);
     println!("Time taken {} ms", dur);
     println!("nps {}", (nodes * 1000 /dur));
