@@ -20,9 +20,9 @@ impl ZobristKey {
     }
 
     #[inline]
-    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, square_from: &Square, square_to: &Square) {
-        self.change_piece(color, piece_type, square_from);
-        self.change_piece(color, piece_type, square_to);
+    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: &Square, to: &Square) {
+        self.change_piece(color, piece_type, from);
+        self.change_piece(color, piece_type, to);
     }
 
     #[inline]
@@ -41,7 +41,7 @@ impl ZobristKey {
     }
 
     #[inline]
-    pub fn set_color(&mut self) {
+    pub fn change_color(&mut self) {
         self.0 ^= COLOR;
     }
 }
@@ -105,9 +105,9 @@ mod test {
     fn update_color() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.set_color();
+        key.change_color();
         let k1 = key.to_u64();
-        key.set_color();
+        key.change_color();
         let k2 = key.to_u64();
         assert_ne!(init_key, k1);
         assert_eq!(init_key, k2);

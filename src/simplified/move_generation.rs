@@ -1,9 +1,8 @@
-use crate::cached::attack_info::AttackInfo;
-use crate::cached::board::Board;
-use crate::types::move_list::MoveList;
+use crate::simplified::position::Position;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
 use crate::types::color::Color;
+use crate::types::move_list::MoveList;
 use crate::types::move_type::MoveType;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
@@ -11,85 +10,78 @@ use crate::types::square::Square;
 #[allow(dead_code)]
 impl MoveList {
     #[inline]
-    pub fn generate_quiets(&mut self, board: &Board, attack_info: &mut AttackInfo) {
-        attack_info.update(board);
-        let our_color = board.color_to_move;
-        if board.check_bitboard.is_empty() {
-            self.generate_castling_moves(board, attack_info);
+    pub fn generate_quiets(&mut self, position: &Position) {
+        let our_color = position.ctm();
+        if position.state().check_bitboard.is_empty() {
+            self.generate_castling_moves(position, &our_color);
         }
 
-        let mask = attack_info.movement_mask(&our_color).intersect(&board.empty_bitboard());
+        let mask = &position.get_mask(our_color).intersect(&position.empty_bitboard());
         if mask.is_not_empty() {
-            self.generate_quiet_pawn_moves(board, &mask);
-            self.generate_moves(board, attack_info, &PieceType::KNIGHT, &mask);
-            self.generate_moves(board, attack_info, &PieceType::BISHOP, &mask);
-            self.generate_moves(board, attack_info, &PieceType::ROOK, &mask);
-            self.generate_moves(board, attack_info, &PieceType::QUEEN, &mask);
+            self.generate_quiet_pawn_moves(position, our_color, mask);
+            self.generate_moves(position,  our_color, &PieceType::KNIGHT, mask);
+            self.generate_moves(position,  our_color, &PieceType::BISHOP, mask);
+            self.generate_moves(position,  our_color, &PieceType::ROOK, mask);
+            self.generate_moves(position,  our_color, &PieceType::QUEEN, mask);
         }
-        self.generate_moves(board, attack_info, &PieceType::KING, &board.empty_bitboard());
+        self.generate_moves(position, our_color, &PieceType::KING, &position.empty_bitboard());
     }
 
     #[inline]
-    fn generate_castling_moves(&mut self, board: &Board, attack_info: &AttackInfo) {
-        let our_color = board.color_to_move;
-        let their_color = our_color.reverse();
-        let possible_castling = board.castling_rights.color_filter(&our_color);
-        let king_square = board.king_square(&our_color);
+    fn generate_castling_moves(&mut self, position: &Position, color: &Color) {
+        let possible_castling = position.state().castling_rights.color_filter(&color);
+        let king_square = position.king_square(&color);
         for castling_index in possible_castling.iterator() {
             let king_to = castling_index.square_king_to();
-            let king_path = king_square.between(&king_to)
-                .union(&Bitboard::from(king_to));
-
-            let rook_from = board.initial_rook_square(&castling_index);
-            let rook_to = castling_index.square_rook_to();
-            let rook_path = rook_from.between(&rook_to);
-
-            if king_path.union(&rook_path).intersect(&board.game_bitboard())
-                .union(&king_path.intersect(&attack_info.all_attack_bitboard(&their_color, &PieceType::NONE))).is_empty() {
-                let board_move = BoardMove::build_castling(&king_square, &king_to);
-                self.add_move(board_move);
-            }
+            self.add_move(BoardMove::build_castling(&king_square, &king_to));
         }
     }
 
     #[inline]
-    fn generate_quiet_pawn_moves(&mut self, board: &Board, mask: &Bitboard) {
-        let color = board.color_to_move;
-        let their_color = board.color_to_move.reverse();
-        let pawn_bitboard = board.piece_bitboard(&color, &PieceType::PAWN)
-            .intersect(&board.empty_bitboard().pawn_forward(&their_color))
-            .difference(&Bitboard::PROMOTION[color.to_usize()]);
+    fn generate_quiet_pawn_moves(&mut self, position: &Position, color: &Color, mask: &Bitboard) {
+        let their_color = color.reverse();
+        let pawn_bitboard = position.piece_bitboard(&color, &PieceType::PAWN)
+            .intersect(&position.empty_bitboard().pawn_forward(&their_color))
+            .difference(&Bitboard::PROMOTION[color]);
 
         for square in pawn_bitboard.iterator() {
-            let move_bitboard = if Bitboard::from(&square).intersect(&board.pinned_bitboard).is_not_empty() {
-                square.pawn_move(&color)
+            let move_bitboard = square.pawn_move(&color)
                     .union(&square.pawn_double_move(&color))
-                    .intersect(mask)
-                    .intersect(&board.king_square(&color).pinned_mask(&square))
-            } else {
-                square.pawn_move(&color)
-                    .union(&square.pawn_double_move(&color))
-                    .intersect(mask)
+                    .intersect(mask);
+
+            self.register_moves_from_square(&color, &square, &move_bitboard);
+        }
+    }
+
+    #[inline]
+    fn generate_moves(&mut self, position: &Position, color: &Color, piece_type: &PieceType, mask: &Bitboard) {
+        for square in position.piece_bitboard(&color, piece_type).iterator() {
+            let bitboard = match piece_type {
+                &PieceType::KNIGHT => {
+                    square.knight_moves()
+                },
+                &PieceType::BISHOP => {
+                    square.bishop_moves(position.game_bitboard())
+                },
+                &PieceType::ROOK => {
+                    square.rook_moves(position.game_bitboard())
+                },
+                &PieceType::QUEEN => {
+                    square.bishop_moves(position.game_bitboard()).union(&square.rook_moves(position.game_bitboard()))
+                },
+                &PieceType::KING => {
+                    square.king_moves()
+                },
+                _ => {
+                    Bitboard::EMPTY
+                }
             };
-
-            self.generate_moves_from_square(&color, &square, &move_bitboard);
+            self.register_moves_from_square(&color, &square, &mask.intersect(&bitboard))
         }
     }
 
     #[inline]
-    fn generate_moves(&mut self, board: &Board, attack_info: &AttackInfo, piece_type: &PieceType, mask: &Bitboard) {
-        let color = board.color_to_move;
-        let masked_move = mask.intersect(&attack_info.pinned_attack_bitboard(&color, piece_type));
-        if masked_move.is_empty() {
-            return;
-        }
-        for square in board.piece_bitboard(&color, piece_type).iterator() {
-            self.generate_moves_from_square(&color, &square, &attack_info.movement(&square).intersect(&mask))
-        }
-    }
-
-    #[inline]
-    fn generate_moves_from_square(&mut self, color: &Color, square: &Square, bitboard: &Bitboard) {
+    fn register_moves_from_square(&mut self, color: &Color, square: &Square, bitboard: &Bitboard) {
         for square_to in bitboard.iterator() {
             let board_move = BoardMove::build_normal(square, &square_to);
             self.add_move(board_move);
@@ -97,29 +89,28 @@ impl MoveList {
     }
 
     #[inline]
-    pub fn generate_noisy(&mut self, board: &Board, attack_info: &mut AttackInfo) {
-        attack_info.update(board);
-        let our_color = board.color_to_move;
-
-        let mask = attack_info.movement_mask(&our_color).intersect(&board.color_bitboard(&our_color.reverse()));
+    pub fn generate_noisy(&mut self, position: &Position) {
+        let color = position.ctm();
+        let their_color = color.reverse();
+        let mask = &position.get_mask(color);
+        let capture_mask = &mask.intersect(&position.color_bitboard(&their_color));
         if mask.is_not_empty() {
-            self.generate_capture_promotions(board, &mask);
-            self.generate_quiet_promotions(board, &attack_info.movement_mask(&our_color).intersect(&board.empty_bitboard()));
-            self.generate_pawn_capture(board, &mask);
-            self.generate_moves(board, attack_info, &PieceType::KNIGHT, &mask);
-            self.generate_moves(board, attack_info, &PieceType::BISHOP, &mask);
-            self.generate_moves(board, attack_info, &PieceType::ROOK, &mask);
-            self.generate_moves(board, attack_info, &PieceType::QUEEN, &mask);
-            self.generate_ep_capture(board, &attack_info.movement_mask(&our_color));
+            self.generate_capture_promotions(position, color, capture_mask);
+            self.generate_quiet_promotions(position, color, mask);
+            self.generate_pawn_capture(position, color, capture_mask);
+            self.generate_moves(position, color, &PieceType::KNIGHT, capture_mask);
+            self.generate_moves(position, color, &PieceType::BISHOP, capture_mask);
+            self.generate_moves(position, color, &PieceType::ROOK, capture_mask);
+            self.generate_moves(position, color, &PieceType::QUEEN, capture_mask);
+            self.generate_ep_capture(position, &mask);
         }
-        self.generate_moves(board, attack_info, &PieceType::KING, &board.color_bitboard(&our_color.reverse()));
+        self.generate_moves(position, color, &PieceType::KING, &position.color_bitboard(&their_color));
     }
 
     #[inline]
-    fn generate_ep_capture(&mut self, board: &Board, mask: &Bitboard) {
-        if let Some(ep_square) = board.ep_square {
-
-            let color = board.color_to_move;
+    fn generate_ep_capture(&mut self, position: &Position, mask: &Bitboard) {
+        if let Some(ep_square) = position.state().ep_square {
+            let color = position.ctm();
             let their_color = color.reverse();
 
             if Bitboard::from(&ep_square.forward(&their_color)).intersect(mask).is_empty() {
@@ -127,73 +118,51 @@ impl MoveList {
             }
 
             let bitboard = ep_square.pawn_attacks(&their_color)
-                .intersect(&board.piece_bitboard(&color, &PieceType::PAWN));
+                .intersect(&position.piece_bitboard(&color, &PieceType::PAWN));
 
             for square in bitboard.iterator() {
-                let bitboard_from = Bitboard::from(&square);
-                let mut bitboard_to = Bitboard::from(&ep_square);
-                if bitboard_from.intersect(&board.pinned_bitboard).is_not_empty() {
-                    let king_square = board.king_square(&color);
-                    bitboard_to = bitboard_to.intersect(&king_square.pinned_mask(&square));
-                }
-                if bitboard_to.is_not_empty() {
-                    let board_move = BoardMove::build_passant(&square, &ep_square);
-                    self.add_move(board_move);
-                }
+                let board_move = BoardMove::build_passant(&square, &ep_square);
+                self.add_move(board_move);
             }
         }
     }
 
     #[inline]
-    fn generate_pawn_capture(&mut self, board: &Board, mask: &Bitboard) {
-        let color = board.color_to_move;
-        let their_color = board.color_to_move.reverse();
-        let pawn_bitboard = board.piece_bitboard(&color, &PieceType::PAWN)
+    fn generate_pawn_capture(&mut self, position: &Position, color: &Color, mask: &Bitboard) {
+        let their_color = color.reverse();
+        let pawn_bitboard = position.piece_bitboard(&color, &PieceType::PAWN)
             .intersect(&Bitboard::PROMOTION[color.to_usize()].reverse())
-            .intersect(&board.color_bitboard(&their_color).intersect(&mask).pawn_attacks(&their_color));
+            .intersect(&position.color_bitboard(&their_color).intersect(mask).pawn_attacks(&their_color));
 
         for square in pawn_bitboard.iterator() {
             let bitboard_from = Bitboard::from(&square);
-            let mut bitboard_to = square.pawn_attacks(&color)
-                .intersect(&board.color_bitboard(&their_color))
-                .intersect(mask);
-            if bitboard_from.intersect(&board.pinned_bitboard).is_not_empty() {
-                let king_square = board.king_square(&color);
-                bitboard_to = bitboard_to.intersect(&king_square.pinned_mask(&square));
-            }
-            self.generate_moves_from_square(&color, &square, &bitboard_to);
+            let mut bitboard_to = square.pawn_attacks(&color).intersect(mask);
+
+            self.register_moves_from_square(&color, &square, &bitboard_to);
         }
     }
 
     #[inline]
-    fn generate_capture_promotions(&mut self, board: &Board, mask: &Bitboard) {
-        let color = board.color_to_move;
-        let their_color = board.color_to_move.reverse();
-        let pawn_bitboard = board.piece_bitboard(&color, &PieceType::PAWN)
-            .intersect(&Bitboard::PROMOTION[color.to_usize()])
-            .intersect(&board.color_bitboard(&their_color).intersect(&mask).pawn_attacks(&their_color));
+    fn generate_capture_promotions(&mut self, position: &Position, color: &Color, mask: &Bitboard) {
+        let their_color = color.reverse();
+        let pawn_bitboard = position.piece_bitboard(&color, &PieceType::PAWN)
+            .intersect(&Bitboard::PROMOTION[color])
+            .intersect(&position.color_bitboard(&their_color).intersect(mask).pawn_attacks(&their_color));
 
         for square in pawn_bitboard.iterator() {
-            let bitboard_from = Bitboard::from(&square);
-            let mut bitboard_to = square.pawn_attacks(&color)
-                .intersect(&board.color_bitboard(&their_color))
+            let bitboard_to = square.pawn_attacks(&color)
+                .intersect(&position.color_bitboard(&their_color))
                 .intersect(mask);
-            if bitboard_from.intersect(&board.pinned_bitboard).is_not_empty() {
-                let king_square = board.king_square(&color);
-                bitboard_to = bitboard_to.intersect(&king_square.pinned_mask(&square));
-            }
             self.generate_promotions(&color, &square, &bitboard_to);
         }
     }
 
     #[inline]
-    fn generate_quiet_promotions(&mut self, board: &Board, mask: &Bitboard) {
-        let color = board.color_to_move;
-        let their_color = board.color_to_move.reverse();
-        let pawn_bitboard = board.piece_bitboard(&color, &PieceType::PAWN)
-            .difference(&board.pinned_bitboard)
-            .intersect(&board.empty_bitboard().intersect(&mask).pawn_forward(&their_color))
-            .intersect(&Bitboard::PROMOTION[color.to_usize()]);
+    fn generate_quiet_promotions(&mut self, position: &Position, color: &Color, mask: &Bitboard) {
+        let their_color = color.reverse();
+        let pawn_bitboard = position.piece_bitboard(&color, &PieceType::PAWN)
+            .intersect(&position.empty_bitboard().intersect(mask).pawn_forward(&their_color))
+            .intersect(&Bitboard::PROMOTION[color]);
 
         for square in pawn_bitboard.iterator() {
             self.generate_promotion(&color, &square, &square.forward(&color));
@@ -218,18 +187,18 @@ impl MoveList {
 
 #[cfg(test)]
 mod test {
-    use super::*;
+    use crate::simplified::position::Position;
+    use crate::types::move_list::MoveList;
 
     fn count_moves(fen: &str) -> u32 {
-        let board = Board::from_fen(fen);
+        let position = Position::from_fen(fen);
         let mut move_list = MoveList::new();
-        let mut attack_info = AttackInfo::new();
-        move_list.generate_quiets(&board, &mut attack_info);
-        move_list.generate_noisy(&board, &mut attack_info);
+        move_list.generate_quiets(&position);
+        move_list.generate_noisy(&position);
         let mut legal_moves = 0;
         while move_list.has_next() {
             let board_move = move_list.next();
-            if board.clone().do_move(&board_move) {
+            if position.is_legal_move(&board_move) {
                 println!("move {}", board_move.to_string());
                 legal_moves += 1;
             } else {
@@ -478,5 +447,20 @@ mod test {
     fn gen683_3() {
         let legal_moves = count_moves("5b2/8/rp3qN1/p1k2p1r/PpbpP3/7P/2QP1PB1/RN2K2R w KQ -");
         assert_eq!(legal_moves, 30)
+    }
+}
+
+impl Position {
+    #[inline]
+    fn get_mask(&self, color: &Color) -> Bitboard {
+        return if self.state().check_bitboard.is_empty() {
+            Bitboard::ALL
+        } else if self.state().check_bitboard.one_element() {
+            let check_square = self.state().check_bitboard.to_square();
+            let king_square = self.king_square(color);
+            check_square.between(&king_square).union(&self.state().check_bitboard)
+        } else {
+            Bitboard::EMPTY
+        };
     }
 }

@@ -150,7 +150,7 @@ impl AttackInfo {
         let king_square = board.king_square(color);
 
         for square in rooks.iterator() {
-            let from_bitboard = Bitboard::from_square(&square);
+            let from_bitboard = Bitboard::from(&square);
             let bitboard = square.rook_moves(&board.game_bitboard()).intersect(mask);
             let pinned_bitboard = pinned_mask(board, color, &square, bitboard);
             self.register_bitboard(color, &PieceType::ROOK, &square, &bitboard, &pinned_bitboard);
@@ -163,7 +163,7 @@ impl AttackInfo {
         let king_square = board.king_square(color);
 
         for square in queens.iterator() {
-            let from_bitboard = Bitboard::from_square(&square);
+            let from_bitboard = Bitboard::from(&square);
             let bitboard =
                 square.bishop_moves(&board.game_bitboard())
                     .union(&square.rook_moves(&board.game_bitboard()))
@@ -224,7 +224,7 @@ impl AttackInfo {
 
 #[inline]
 fn pinned_mask(board: &Board, color: &Color, square: &Square, bitboard: Bitboard) -> Bitboard {
-    let from_bitboard = Bitboard::from_square(&square);
+    let from_bitboard = Bitboard::from(square);
     return if from_bitboard.intersect(&board.pinned_bitboard).is_empty() {
         bitboard
     } else {

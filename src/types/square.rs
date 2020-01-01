@@ -1,6 +1,8 @@
 use crate::types::color::Color;
 use crate::types::file::File;
 use crate::types::rank::Rank;
+use std::ops;
+use crate::types::piece_type::PieceType;
 
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
 pub struct Square(pub i8);
@@ -244,6 +246,20 @@ impl Square {
         } else {
             None
         }
+    }
+}
+
+impl ops::Index<&Square> for [PieceType] {
+    type Output = PieceType;
+
+    fn index(&self, index: &Square) -> &PieceType {
+        &self[index.to_usize()]
+    }
+}
+
+impl ops::IndexMut<&Square> for [PieceType] {
+    fn index_mut(&mut self, index: &Square) -> &mut PieceType {
+        &mut self[index.to_usize()]
     }
 }
 

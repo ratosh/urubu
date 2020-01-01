@@ -167,7 +167,7 @@ impl Board {
 
     #[inline]
     pub fn piece_type(&self, square: &Square) -> PieceType {
-        let bitboard = Bitboard::from_square(square);
+        let bitboard = Bitboard::from(square);
 
         if self.piece_bitboard[PieceType::NONE.to_usize()].intersect(&bitboard).is_empty() {
             return PieceType::NONE;
@@ -187,7 +187,7 @@ impl Board {
 
     #[inline]
     pub fn color_at(&self, square: &Square) -> Option<Color> {
-        let bitboard = Bitboard::from_square(square);
+        let bitboard = Bitboard::from(square);
         if self.color_bitboard[Color::White.to_usize()].has(&bitboard) {
             return Some(Color::White);
         } else if self.color_bitboard[Color::Black.to_usize()].has(&bitboard) {
@@ -223,7 +223,7 @@ impl Board {
 
     #[inline]
     fn remove_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
-        let bitboard = Bitboard::from_square(square);
+        let bitboard = Bitboard::from(square);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].difference(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -232,7 +232,7 @@ impl Board {
 
     #[inline]
     pub fn add_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
-        let bitboard = Bitboard::from_square(square);
+        let bitboard = Bitboard::from(square);
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].union(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -241,8 +241,8 @@ impl Board {
 
     #[inline]
     fn move_piece(&mut self, color: &Color, piece_type: &PieceType, square_from: &Square, square_to: &Square) {
-        let bitboard = Bitboard::from_square(square_from)
-            .union(&Bitboard::from_square(square_to));
+        let bitboard = Bitboard::from(square_from)
+            .union(&Bitboard::from(square_to));
         self.piece_bitboard[piece_type.to_usize()] =
             self.piece_bitboard[piece_type.to_usize()].invert(&bitboard);
         self.color_bitboard[color.to_usize()] =
@@ -254,7 +254,7 @@ impl Board {
         let mut zobrist_key = ZobristKey::new();
         let mut pawn_zobrist_key = ZobristKey::new();
         if self.color_to_move.is_white() {
-            zobrist_key.set_color();
+            zobrist_key.change_color();
         }
         if self.ep_square.is_some() {
             zobrist_key.set_ep(&self.ep_square.unwrap());
@@ -308,7 +308,7 @@ impl Board {
         let color_our = self.color_to_move;
         let color_their = color_our.reverse();
 
-        self.zkey.set_color();
+        self.zkey.change_color();
         self.zkey.move_piece(&color_our, &piece_type, &square_from, &square_to);
 
         // Castling needs to move two pieces

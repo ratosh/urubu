@@ -122,11 +122,6 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn from_square(square: &Square) -> Self {
-        Bitboard(1u64 << square.to_u64())
-    }
-
-    #[inline]
     pub fn is_empty(&self) -> bool {
         self.0 == 0
     }
@@ -178,7 +173,7 @@ impl Bitboard {
 
     #[inline]
     pub fn with_square(&self, square: &Square) -> Self {
-        self.union(&Bitboard::from_square(square))
+        self.union(&Bitboard::from(square))
     }
 
     #[inline]
@@ -201,16 +196,28 @@ impl Bitboard {
     }
 }
 
+impl From<Square> for Bitboard {
+    fn from(square: Square) -> Self {
+        Bitboard(1u64 << square.to_u64())
+    }
+}
+
+impl From<&Square> for Bitboard {
+    fn from(square: &Square) -> Self {
+        Bitboard(1u64 << square.to_u64())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn from_square() {
-        assert_eq!(Bitboard::from_square(&Square::A1), Bitboard::A1);
-        assert_eq!(Bitboard::from_square(&Square::A8), Bitboard::A8);
-        assert_eq!(Bitboard::from_square(&Square::H1), Bitboard::H1);
-        assert_eq!(Bitboard::from_square(&Square::H8), Bitboard::H8);
+        assert_eq!(Bitboard::from(&Square::A1), Bitboard::A1);
+        assert_eq!(Bitboard::from(&Square::A8), Bitboard::A8);
+        assert_eq!(Bitboard::from(&Square::H1), Bitboard::H1);
+        assert_eq!(Bitboard::from(&Square::H8), Bitboard::H8);
     }
 
     #[test]

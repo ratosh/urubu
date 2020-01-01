@@ -28,7 +28,7 @@ impl Board {
                 let skip = (token as u8 - b'0') as usize;
                 file += skip;
             } else {
-                let (piece_type, color) = PieceType::from_char(token);
+                let (color, piece_type) = PieceType::from_char(token);
                 result.add_piece(&color, &piece_type, &Square::from_file_rank(&File::FILES[file], &Rank::RANKS[rank]));
                 file += 1;
             }
@@ -70,7 +70,7 @@ impl Board {
         for rank in Rank::RANKS.iter().rev() {
             for file in File::FILES.iter() {
                 let square = Square::from_file_rank(file, rank);
-                let bitboard = Bitboard::from_square(&square);
+                let bitboard = Bitboard::from(&square);
                 let piece_type = self.piece_type(&square);
                 if piece_type == PieceType::NONE {
                     empty_squares += 1;

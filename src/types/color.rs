@@ -1,4 +1,7 @@
 use std::mem::transmute;
+use std::ops;
+use crate::types::bitboard::Bitboard;
+use crate::types::square::Square;
 
 #[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug, Hash)]
 pub enum Color {
@@ -79,6 +82,34 @@ impl Color {
     #[inline]
     pub fn multiplier(&self) -> i8 {
         -2 * self.to_i8() + 1
+    }
+}
+
+impl ops::Index<&Color> for [Bitboard] {
+    type Output = Bitboard;
+
+    fn index(&self, index: &Color) -> &Self::Output {
+        &self[index.to_usize()]
+    }
+}
+
+impl ops::IndexMut<&Color> for [Bitboard] {
+    fn index_mut(&mut self, index: &Color) -> &mut Bitboard {
+        &mut self[index.to_usize()]
+    }
+}
+
+impl ops::Index<&Color> for [Square] {
+    type Output = Square;
+
+    fn index(&self, index: &Color) -> &Self::Output {
+        &self[index.to_usize()]
+    }
+}
+
+impl ops::IndexMut<&Color> for [Square] {
+    fn index_mut(&mut self, index: &Color) -> &mut Square {
+        &mut self[index.to_usize()]
     }
 }
 

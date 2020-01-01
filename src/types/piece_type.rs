@@ -1,4 +1,8 @@
 use crate::types::color::Color;
+use crate::types::bitboard::Bitboard;
+use std::ops;
+use crate::types::square::Square;
+use std::ops::{Index, IndexMut};
 
 #[derive(PartialEq, Eq, PartialOrd, Copy, Clone, Debug, Hash)]
 pub struct PieceType(pub u8);
@@ -44,12 +48,12 @@ impl PieceType {
     }
 
     #[inline]
-    pub fn from_char(c: char) -> (PieceType, Color) {
+    pub fn from_char(c: char) -> (Color, PieceType) {
         let lower_c = c.to_lowercase().nth(0).unwrap();
         if let Some(index) = PieceType::REPRESENTATION.iter().position(|&s| s == lower_c) {
-            return (PieceType(index as u8), PieceType::get_color(c));
+            return (PieceType::get_color(c), PieceType(index as u8));
         }
-        return (PieceType::NONE, Color::White);
+        return (Color::White, PieceType::NONE);
     }
 
     #[inline]
@@ -61,6 +65,21 @@ impl PieceType {
         }
     }
 }
+
+impl Index<&PieceType> for [Bitboard] {
+    type Output = Bitboard;
+
+    fn index(&self, index: &PieceType) -> &Self::Output {
+        &self[index.to_usize()]
+    }
+}
+
+impl IndexMut<&PieceType> for [Bitboard] {
+    fn index_mut(&mut self, index: &PieceType) -> &mut Bitboard {
+        &mut self[index.to_usize()]
+    }
+}
+
 
 #[cfg(test)]
 mod test {

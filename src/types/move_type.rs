@@ -1,6 +1,6 @@
 use crate::types::piece_type::PieceType;
 
-#[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
+#[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug)]
 pub struct MoveType(pub u8);
 
 impl MoveType {

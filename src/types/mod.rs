@@ -7,7 +7,6 @@ pub mod game;
 pub mod magic;
 pub mod move_list;
 pub mod move_type;
-pub mod piece;
 pub mod piece_type;
 pub mod rank;
 pub mod square;
