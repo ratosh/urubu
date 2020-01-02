@@ -181,7 +181,7 @@ impl Square {
     }
 
     #[inline]
-    pub fn relative(&self, color: &Color) -> Square {
+    pub fn relative(&self, color: Color) -> Square {
         Square(self.0 ^ (Square::A8.0 * color.to_i8()))
     }
 
@@ -218,7 +218,7 @@ impl Square {
         return None;
     }
 
-    pub fn forward(&self, color: &Color) -> Self {
+    pub fn forward(&self, color: Color) -> Self {
         let result = self.0 + 8 * color.multiplier();
         Square(result)
     }
@@ -283,32 +283,32 @@ mod test {
 
     #[test]
     fn relative() {
-        assert_eq!(Square::A1.relative(&Color::White), Square::A1);
-        assert_eq!(Square::A1.relative(&Color::Black), Square::A8);
-        assert_eq!(Square::B2.relative(&Color::White), Square::B2);
-        assert_eq!(Square::B2.relative(&Color::Black), Square::B7);
-        assert_eq!(Square::C3.relative(&Color::White), Square::C3);
-        assert_eq!(Square::C3.relative(&Color::Black), Square::C6);
-        assert_eq!(Square::D4.relative(&Color::White), Square::D4);
-        assert_eq!(Square::D4.relative(&Color::Black), Square::D5);
+        assert_eq!(Square::A1.relative(Color::White), Square::A1);
+        assert_eq!(Square::A1.relative(Color::Black), Square::A8);
+        assert_eq!(Square::B2.relative(Color::White), Square::B2);
+        assert_eq!(Square::B2.relative(Color::Black), Square::B7);
+        assert_eq!(Square::C3.relative(Color::White), Square::C3);
+        assert_eq!(Square::C3.relative(Color::Black), Square::C6);
+        assert_eq!(Square::D4.relative(Color::White), Square::D4);
+        assert_eq!(Square::D4.relative(Color::Black), Square::D5);
     }
 
     #[test]
     fn forward() {
-        assert_eq!(Square::A1.forward(&Color::White), Square::A2);
-        assert_eq!(Square::B2.forward(&Color::White), Square::B3);
-        assert_eq!(Square::B2.forward(&Color::Black), Square::B1);
-        assert_eq!(Square::C3.forward(&Color::White), Square::C4);
-        assert_eq!(Square::C3.forward(&Color::Black), Square::C2);
-        assert_eq!(Square::D4.forward(&Color::White), Square::D5);
-        assert_eq!(Square::D4.forward(&Color::Black), Square::D3);
-        assert_eq!(Square::E5.forward(&Color::White), Square::E6);
-        assert_eq!(Square::E5.forward(&Color::Black), Square::E4);
-        assert_eq!(Square::F6.forward(&Color::White), Square::F7);
-        assert_eq!(Square::F6.forward(&Color::Black), Square::F5);
-        assert_eq!(Square::G7.forward(&Color::White), Square::G8);
-        assert_eq!(Square::G7.forward(&Color::Black), Square::G6);
-        assert_eq!(Square::H8.forward(&Color::Black), Square::H7);
+        assert_eq!(Square::A1.forward(Color::White), Square::A2);
+        assert_eq!(Square::B2.forward(Color::White), Square::B3);
+        assert_eq!(Square::B2.forward(Color::Black), Square::B1);
+        assert_eq!(Square::C3.forward(Color::White), Square::C4);
+        assert_eq!(Square::C3.forward(Color::Black), Square::C2);
+        assert_eq!(Square::D4.forward(Color::White), Square::D5);
+        assert_eq!(Square::D4.forward(Color::Black), Square::D3);
+        assert_eq!(Square::E5.forward(Color::White), Square::E6);
+        assert_eq!(Square::E5.forward(Color::Black), Square::E4);
+        assert_eq!(Square::F6.forward(Color::White), Square::F7);
+        assert_eq!(Square::F6.forward(Color::Black), Square::F5);
+        assert_eq!(Square::G7.forward(Color::White), Square::G8);
+        assert_eq!(Square::G7.forward(Color::Black), Square::G6);
+        assert_eq!(Square::H8.forward(Color::Black), Square::H7);
     }
 
     #[test]

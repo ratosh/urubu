@@ -34,28 +34,28 @@ impl PositionState {
     }
 
     #[inline]
-    pub fn change_piece(&mut self, color: &Color, piece_type: &PieceType, square: Square) {
+    pub fn change_piece(&mut self, color: Color, piece_type: PieceType, square: Square) {
         // Updating zobrist info
         self.zkey.change_piece(color, piece_type, square);
-        if piece_type == &PieceType::PAWN {
+        if piece_type == PieceType::PAWN {
             self.zkey_pawn.change_piece(color, piece_type, square)
         }
     }
 
-    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: Square, to: Square) {
+    pub fn move_piece(&mut self, color: Color, piece_type: PieceType, from: Square, to: Square) {
         // Updating zobrist info
         self.zkey.move_piece(color, piece_type, from, to);
-        if piece_type == &PieceType::PAWN {
+        if piece_type == PieceType::PAWN {
             self.zkey_pawn.move_piece(color, piece_type, from, to)
         }
     }
 
     #[inline]
-    pub fn update_castling_rights(&mut self, right_change: &CastlingRights) {
-        if right_change != &CastlingRights::NO_CASTLING {
-            self.zkey.set_castling_rights(&self.castling_rights);
-            self.castling_rights = self.castling_rights.difference(&right_change);
-            self.zkey.set_castling_rights(&self.castling_rights);
+    pub fn update_castling_rights(&mut self, right_change: CastlingRights) {
+        if right_change != CastlingRights::NO_CASTLING {
+            self.zkey.set_castling_rights(self.castling_rights);
+            self.castling_rights = self.castling_rights.difference(right_change);
+            self.zkey.set_castling_rights(self.castling_rights);
         }
     }
 

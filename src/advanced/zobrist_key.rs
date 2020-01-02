@@ -20,13 +20,13 @@ impl ZobristKey {
     }
 
     #[inline]
-    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: Square, to: Square) {
+    pub fn move_piece(&mut self, color: Color, piece_type: PieceType, from: Square, to: Square) {
         self.change_piece(color, piece_type, from);
         self.change_piece(color, piece_type, to);
     }
 
     #[inline]
-    pub fn change_piece(&mut self, color: &Color, piece_type: &PieceType, square: Square) {
+    pub fn change_piece(&mut self, color: Color, piece_type: PieceType, square: Square) {
         self.0 ^= PSQT[color.to_usize()][piece_type.to_usize()][square.to_usize()];
     }
 
@@ -36,8 +36,8 @@ impl ZobristKey {
     }
 
     #[inline]
-    pub fn set_castling_rights(&mut self, castling_rights: &CastlingRights) {
-        self.0 ^= CASTLING[castling_rights.to_usize()];
+    pub fn set_castling_rights(&mut self, castling_rights: CastlingRights) {
+        self.0 ^= CASTLING[castling_rights];
     }
 
     #[inline]
@@ -54,9 +54,9 @@ mod test {
     fn move_piece() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.move_piece(&Color::White, &PieceType::PAWN, Square::A1, Square::A2);
+        key.move_piece(Color::White, PieceType::PAWN, Square::A1, Square::A2);
         let k1 = key.to_u64();
-        key.move_piece(&Color::White, &PieceType::PAWN, Square::A2, Square::A1);
+        key.move_piece(Color::White, PieceType::PAWN, Square::A2, Square::A1);
         let k2 = key.to_u64();
         assert_ne!(init_key, k1);
         assert_eq!(init_key, k2);
@@ -66,9 +66,9 @@ mod test {
     fn change_piece() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.change_piece(&Color::White, &PieceType::PAWN, Square::A1);
+        key.change_piece(Color::White, PieceType::PAWN, Square::A1);
         let k1 = key.to_u64();
-        key.change_piece(&Color::White, &PieceType::PAWN, Square::A1);
+        key.change_piece(Color::White, PieceType::PAWN, Square::A1);
         let k2 = key.to_u64();
         assert_ne!(init_key, k1);
         assert_eq!(init_key, k2);
@@ -90,11 +90,11 @@ mod test {
     fn set_castling_rights() {
         let mut key = ZobristKey::new();
         let init_key = key.to_u64();
-        key.set_castling_rights(&CastlingRights::NO_CASTLING);
+        key.set_castling_rights(CastlingRights::NO_CASTLING);
         let k1 = key.to_u64();
-        key.set_castling_rights(&CastlingRights::ANY_CASTLING);
+        key.set_castling_rights(CastlingRights::ANY_CASTLING);
         let k2 = key.to_u64();
-        key.set_castling_rights(&CastlingRights::ANY_CASTLING);
+        key.set_castling_rights(CastlingRights::ANY_CASTLING);
         let k3 = key.to_u64();
         assert_eq!(init_key, k1);
         assert_ne!(init_key, k2);

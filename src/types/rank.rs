@@ -43,7 +43,7 @@ impl Rank {
     }
 
     #[inline]
-    pub fn relative(&self, color: &Color) -> Rank {
+    pub fn relative(&self, color: Color) -> Rank {
         Rank(self.0 ^ (Rank::RANK_8.0 * color.to_i8()))
     }
 

@@ -10,8 +10,8 @@ const NORTH: i8 = 8;
 
 impl Bitboard {
     #[inline]
-    pub fn pawn_forward(&self, color: &Color) -> Bitboard {
-        if color == &Color::White {
+    pub fn pawn_forward(&self, color: Color) -> Bitboard {
+        if color == Color::White {
             self.shl(NORTH as u64)
         } else {
             self.shr(NORTH as u64)
@@ -30,7 +30,7 @@ impl Bitboard {
 
 
     #[inline]
-    pub fn pawn_attacks(&self, color: &Color) -> Bitboard {
+    pub fn pawn_attacks(&self, color: Color) -> Bitboard {
         return match color {
             Color::White => self.difference(Bitboard::FILE_A).shl(7).union(self.difference(Bitboard::FILE_H).shl(9)),
             Color::Black => self.difference(Bitboard::FILE_A).shr(9).union(self.difference(Bitboard::FILE_H).shr(7))
@@ -41,17 +41,17 @@ impl Bitboard {
 impl Square {
 
     #[inline]
-    pub fn pawn_attacks(&self, color: &Color) -> Bitboard {
+    pub fn pawn_attacks(&self, color: Color) -> Bitboard {
         PAWN_ATTACKS[color.to_usize()][self.to_usize()]
     }
 
     #[inline]
-    pub fn pawn_move(&self, color: &Color) -> Bitboard {
+    pub fn pawn_move(&self, color: Color) -> Bitboard {
         PAWN_MOVES[color.to_usize()][self.to_usize()]
     }
 
     #[inline]
-    pub fn pawn_double_move(&self, color: &Color) -> Bitboard {
+    pub fn pawn_double_move(&self, color: Color) -> Bitboard {
         PAWN_DOUBLE_MOVES[color.to_usize()][self.to_usize()]
     }
 
@@ -125,40 +125,40 @@ mod test {
 
     #[test]
     fn pawn_bitboard_forward() {
-        assert_eq!(Bitboard::A2.pawn_forward(&Color::White), Bitboard::A3);
-        assert_eq!(Bitboard::A2.pawn_forward(&Color::Black), Bitboard::A1);
+        assert_eq!(Bitboard::A2.pawn_forward(Color::White), Bitboard::A3);
+        assert_eq!(Bitboard::A2.pawn_forward(Color::Black), Bitboard::A1);
     }
 
     #[test]
     fn bitboard_pawn_attacks() {
-        assert_eq!(Bitboard::A5.pawn_attacks(&Color::White), Bitboard::B6);
-        assert_eq!(Bitboard::A5.pawn_attacks(&Color::Black), Bitboard::B4);
-        assert_eq!(Bitboard::H3.pawn_attacks(&Color::White), Bitboard::G4);
-        assert_eq!(Bitboard::H3.pawn_attacks(&Color::Black), Bitboard::G2);
+        assert_eq!(Bitboard::A5.pawn_attacks(Color::White), Bitboard::B6);
+        assert_eq!(Bitboard::A5.pawn_attacks(Color::Black), Bitboard::B4);
+        assert_eq!(Bitboard::H3.pawn_attacks(Color::White), Bitboard::G4);
+        assert_eq!(Bitboard::H3.pawn_attacks(Color::Black), Bitboard::G2);
     }
 
     #[test]
     fn square_pawn_attacks() {
-        assert_eq!(Square::A5.pawn_attacks(&Color::White), Bitboard::B6);
-        assert_eq!(Square::A5.pawn_attacks(&Color::Black), Bitboard::B4);
-        assert_eq!(Square::H3.pawn_attacks(&Color::White), Bitboard::G4);
-        assert_eq!(Square::H3.pawn_attacks(&Color::Black), Bitboard::G2);
+        assert_eq!(Square::A5.pawn_attacks(Color::White), Bitboard::B6);
+        assert_eq!(Square::A5.pawn_attacks(Color::Black), Bitboard::B4);
+        assert_eq!(Square::H3.pawn_attacks(Color::White), Bitboard::G4);
+        assert_eq!(Square::H3.pawn_attacks(Color::Black), Bitboard::G2);
     }
 
     #[test]
     fn pawn_move() {
-        assert_eq!(Square::A2.pawn_move(&Color::White), Bitboard::A3);
-        assert_eq!(Square::A8.pawn_move(&Color::White), Bitboard::EMPTY);
-        assert_eq!(Square::A2.pawn_move(&Color::Black), Bitboard::A1);
-        assert_eq!(Square::A1.pawn_move(&Color::Black), Bitboard::EMPTY);
+        assert_eq!(Square::A2.pawn_move(Color::White), Bitboard::A3);
+        assert_eq!(Square::A8.pawn_move(Color::White), Bitboard::EMPTY);
+        assert_eq!(Square::A2.pawn_move(Color::Black), Bitboard::A1);
+        assert_eq!(Square::A1.pawn_move(Color::Black), Bitboard::EMPTY);
     }
 
     #[test]
     fn pawn_double_move() {
-        assert_eq!(Square::A2.pawn_double_move(&Color::White), Bitboard::A4);
-        assert_eq!(Square::A3.pawn_double_move(&Color::White), Bitboard::EMPTY);
-        assert_eq!(Square::A2.pawn_double_move(&Color::Black), Bitboard::EMPTY);
-        assert_eq!(Square::A7.pawn_double_move(&Color::Black), Bitboard::A5);
+        assert_eq!(Square::A2.pawn_double_move(Color::White), Bitboard::A4);
+        assert_eq!(Square::A3.pawn_double_move(Color::White), Bitboard::EMPTY);
+        assert_eq!(Square::A2.pawn_double_move(Color::Black), Bitboard::EMPTY);
+        assert_eq!(Square::A7.pawn_double_move(Color::Black), Bitboard::A5);
     }
 
 

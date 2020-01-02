@@ -219,13 +219,13 @@ fn slide_move(square: Square, slide_value: i8, limit: Bitboard) -> Bitboard {
 fn init_pawn_attacks() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
     for square in Square::SQUARES.iter() {
-        result[Color::White.to_usize()][square.to_usize()] = init_pawn_attack(*square, &Color::White);
-        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_attack(*square, &Color::Black);
+        result[Color::White.to_usize()][square.to_usize()] = init_pawn_attack(*square, Color::White);
+        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_attack(*square, Color::Black);
     }
     return result;
 }
 
-fn init_pawn_attack(square: Square, color: &Color) -> Bitboard {
+fn init_pawn_attack(square: Square, color: Color) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     if square.to_file() != file::File::FILE_A {
         if let Some(final_square) = square.offset(PAWN_ATTACK_LEFT[color.to_usize()]) {
@@ -243,13 +243,13 @@ fn init_pawn_attack(square: Square, color: &Color) -> Bitboard {
 fn init_pawn_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
     for square in Square::SQUARES.iter() {
-        result[Color::White.to_usize()][square.to_usize()] = init_pawn_move(*square, &Color::White);
-        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_move(*square, &Color::Black);
+        result[Color::White.to_usize()][square.to_usize()] = init_pawn_move(*square, Color::White);
+        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_move(*square, Color::Black);
     }
     return result;
 }
 
-fn init_pawn_move(square: Square, color: &Color) -> Bitboard {
+fn init_pawn_move(square: Square, color: Color) -> Bitboard {
     let forward = square.offset(PAWN_FORWARD[color.to_usize()]);
     if forward != None {
         return Bitboard::from(forward.unwrap());
@@ -260,14 +260,14 @@ fn init_pawn_move(square: Square, color: &Color) -> Bitboard {
 fn init_pawn_double_moves() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
     let mut result = [[Bitboard::EMPTY; Square::NUM_SQUARES]; Color::NUM_COLORS];
     for square in Square::SQUARES.iter() {
-        result[Color::White.to_usize()][square.to_usize()] = init_pawn_double_move(*square, &Color::White);
-        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_double_move(*square, &Color::Black);
+        result[Color::White.to_usize()][square.to_usize()] = init_pawn_double_move(*square, Color::White);
+        result[Color::Black.to_usize()][square.to_usize()] = init_pawn_double_move(*square, Color::Black);
     }
     return result;
 }
 
-fn init_pawn_double_move(square: Square, color: &Color) -> Bitboard {
-    if square.to_rank().relative(&color) == Rank::RANK_2 {
+fn init_pawn_double_move(square: Square, color: Color) -> Bitboard {
+    if square.to_rank().relative(color) == Rank::RANK_2 {
         let forward = square.offset(PAWN_FORWARD[color.to_usize()] * 2);
         if forward != None {
             return Bitboard::from(forward.unwrap());

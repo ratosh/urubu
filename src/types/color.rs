@@ -80,30 +80,30 @@ impl Color {
     }
 }
 
-impl ops::Index<&Color> for [Bitboard] {
+impl ops::Index<Color> for [Bitboard] {
     type Output = Bitboard;
 
-    fn index(&self, index: &Color) -> &Self::Output {
+    fn index(&self, index: Color) -> &Self::Output {
         &self[index.to_usize()]
     }
 }
 
-impl ops::IndexMut<&Color> for [Bitboard] {
-    fn index_mut(&mut self, index: &Color) -> &mut Bitboard {
+impl ops::IndexMut<Color> for [Bitboard] {
+    fn index_mut(&mut self, index: Color) -> &mut Bitboard {
         &mut self[index.to_usize()]
     }
 }
 
-impl ops::Index<&Color> for [Square] {
+impl ops::Index<Color> for [Square] {
     type Output = Square;
 
-    fn index(&self, index: &Color) -> &Self::Output {
+    fn index(&self, index: Color) -> &Self::Output {
         &self[index.to_usize()]
     }
 }
 
-impl ops::IndexMut<&Color> for [Square] {
-    fn index_mut(&mut self, index: &Color) -> &mut Square {
+impl ops::IndexMut<Color> for [Square] {
+    fn index_mut(&mut self, index: Color) -> &mut Square {
         &mut self[index.to_usize()]
     }
 }

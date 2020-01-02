@@ -66,16 +66,16 @@ impl PieceType {
     }
 }
 
-impl Index<&PieceType> for [Bitboard] {
+impl Index<PieceType> for [Bitboard] {
     type Output = Bitboard;
 
-    fn index(&self, index: &PieceType) -> &Self::Output {
+    fn index(&self, index: PieceType) -> &Self::Output {
         &self[index.to_usize()]
     }
 }
 
-impl IndexMut<&PieceType> for [Bitboard] {
-    fn index_mut(&mut self, index: &PieceType) -> &mut Bitboard {
+impl IndexMut<PieceType> for [Bitboard] {
+    fn index_mut(&mut self, index: PieceType) -> &mut Bitboard {
         &mut self[index.to_usize()]
     }
 }

@@ -1,6 +1,7 @@
 use crate::types::color::Color;
 use std::mem::transmute;
 use crate::types::square::Square;
+use std::ops;
 
 #[allow(missing_docs)]
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug, Eq)]
@@ -79,7 +80,7 @@ impl CastlingIndex {
     }
 
     #[inline]
-    pub fn from_color_side(color: &Color, castling_side: &CastlingSide) -> Self {
+    pub fn from_color_side(color: Color, castling_side: CastlingSide) -> Self {
         CastlingIndex::unsafe_creation(castling_side.to_u32() + 2 * color.to_u32())
     }
 
@@ -135,34 +136,34 @@ impl CastlingRights {
         let mut result = CastlingRights::NO_CASTLING;
         for c in st.chars() {
             if let Some(index) = CastlingIndex::from_char(c) {
-                result = result.add_index(&index);
+                result = result.add_index(index);
             }
         }
         return result
     }
 
     #[inline]
-    pub fn color_filter(&self, color: &Color) -> Self {
+    pub fn color_filter(&self, color: Color) -> Self {
         CastlingRights(self.0 & (CastlingRights::WHITE_RIGHTS.0 << (color.to_u8() * 2)))
     }
 
     #[inline]
-    pub fn union(&self, other: &Self) -> Self {
+    pub fn union(&self, other: Self) -> Self {
         CastlingRights(self.0 | other.0)
     }
 
     #[inline]
-    pub fn intersect(&self, other: &Self) -> Self {
+    pub fn intersect(&self, other: Self) -> Self {
         CastlingRights(self.0 & other.0)
     }
 
     #[inline]
-    pub fn difference(&self, other: &Self) -> Self {
+    pub fn difference(&self, other: Self) -> Self {
         CastlingRights(self.0 & !other.0)
     }
 
     #[inline]
-    pub fn add_index(&self, index: &CastlingIndex) -> Self {
+    pub fn add_index(&self, index: CastlingIndex) -> Self {
         return CastlingRights(self.0 | 1 << index.to_u8())
     }
 
@@ -181,6 +182,20 @@ impl Iterator for CastlingRightsIterator {
             return Some(item);
         }
         None
+    }
+}
+
+impl ops::Index<CastlingRights> for [u64] {
+    type Output = u64;
+
+    fn index(&self, index: CastlingRights) -> &Self::Output {
+        &self[index.to_usize()]
+    }
+}
+
+impl ops::IndexMut<CastlingRights> for [u64] {
+    fn index_mut(&mut self, index: CastlingRights) -> &mut u64 {
+        &mut self[index.to_usize()]
     }
 }
 
@@ -229,49 +244,49 @@ mod testing {
 
     #[test]
     fn filter() {
-        assert_eq!(CastlingRights::WHITE_OO.color_filter(&Color::White), CastlingRights::WHITE_OO);
-        assert_eq!(CastlingRights::WHITE_OOO.color_filter(&Color::White), CastlingRights::WHITE_OOO);
-        assert_eq!(CastlingRights::WHITE_OO.color_filter(&Color::Black), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::WHITE_OOO.color_filter(&Color::Black), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(&Color::White), CastlingRights::WHITE_RIGHTS);
-        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(&Color::Black), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::WHITE_OO.color_filter(Color::White), CastlingRights::WHITE_OO);
+        assert_eq!(CastlingRights::WHITE_OOO.color_filter(Color::White), CastlingRights::WHITE_OOO);
+        assert_eq!(CastlingRights::WHITE_OO.color_filter(Color::Black), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::WHITE_OOO.color_filter(Color::Black), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(Color::White), CastlingRights::WHITE_RIGHTS);
+        assert_eq!(CastlingRights::ANY_CASTLING.color_filter(Color::Black), CastlingRights::BLACK_RIGHTS);
     }
 
     #[test]
     fn add_right() {
-        assert_eq!(CastlingRights::ANY_CASTLING.union(&CastlingRights::WHITE_OO), CastlingRights::ANY_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.union(&CastlingRights::WHITE_OOO), CastlingRights::ANY_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.union(&CastlingRights::BLACK_OO), CastlingRights::ANY_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.union(&CastlingRights::BLACK_OOO), CastlingRights::ANY_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.union(&CastlingRights::WHITE_RIGHTS), CastlingRights::ANY_CASTLING);
-        assert_eq!(CastlingRights::ANY_CASTLING.union(&CastlingRights::BLACK_RIGHTS), CastlingRights::ANY_CASTLING);
-        assert_eq!(CastlingRights::NO_CASTLING.union(&CastlingRights::WHITE_OO), CastlingRights::WHITE_OO);
-        assert_eq!(CastlingRights::NO_CASTLING.union(&CastlingRights::WHITE_OOO), CastlingRights::WHITE_OOO);
-        assert_eq!(CastlingRights::NO_CASTLING.union(&CastlingRights::BLACK_OO), CastlingRights::BLACK_OO);
-        assert_eq!(CastlingRights::NO_CASTLING.union(&CastlingRights::BLACK_OOO), CastlingRights::BLACK_OOO);
-        assert_eq!(CastlingRights::NO_CASTLING.union(&CastlingRights::WHITE_RIGHTS), CastlingRights::WHITE_RIGHTS);
-        assert_eq!(CastlingRights::NO_CASTLING.union(&CastlingRights::BLACK_RIGHTS), CastlingRights::BLACK_RIGHTS);
-        assert_eq!(CastlingRights::WHITE_RIGHTS.union(&CastlingRights::WHITE_OO), CastlingRights::WHITE_RIGHTS);
-        assert_eq!(CastlingRights::WHITE_RIGHTS.union(&CastlingRights::WHITE_OOO), CastlingRights::WHITE_RIGHTS);
-        assert_eq!(CastlingRights::BLACK_RIGHTS.union(&CastlingRights::BLACK_OO), CastlingRights::BLACK_RIGHTS);
-        assert_eq!(CastlingRights::BLACK_RIGHTS.union(&CastlingRights::BLACK_OOO), CastlingRights::BLACK_RIGHTS);
-        assert_eq!(CastlingRights::BLACK_RIGHTS.union(&CastlingRights::WHITE_RIGHTS), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.union(CastlingRights::WHITE_OO), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.union(CastlingRights::WHITE_OOO), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.union(CastlingRights::BLACK_OO), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.union(CastlingRights::BLACK_OOO), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.union(CastlingRights::WHITE_RIGHTS), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::ANY_CASTLING.union(CastlingRights::BLACK_RIGHTS), CastlingRights::ANY_CASTLING);
+        assert_eq!(CastlingRights::NO_CASTLING.union(CastlingRights::WHITE_OO), CastlingRights::WHITE_OO);
+        assert_eq!(CastlingRights::NO_CASTLING.union(CastlingRights::WHITE_OOO), CastlingRights::WHITE_OOO);
+        assert_eq!(CastlingRights::NO_CASTLING.union(CastlingRights::BLACK_OO), CastlingRights::BLACK_OO);
+        assert_eq!(CastlingRights::NO_CASTLING.union(CastlingRights::BLACK_OOO), CastlingRights::BLACK_OOO);
+        assert_eq!(CastlingRights::NO_CASTLING.union(CastlingRights::WHITE_RIGHTS), CastlingRights::WHITE_RIGHTS);
+        assert_eq!(CastlingRights::NO_CASTLING.union(CastlingRights::BLACK_RIGHTS), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::WHITE_RIGHTS.union(CastlingRights::WHITE_OO), CastlingRights::WHITE_RIGHTS);
+        assert_eq!(CastlingRights::WHITE_RIGHTS.union(CastlingRights::WHITE_OOO), CastlingRights::WHITE_RIGHTS);
+        assert_eq!(CastlingRights::BLACK_RIGHTS.union(CastlingRights::BLACK_OO), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::BLACK_RIGHTS.union(CastlingRights::BLACK_OOO), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::BLACK_RIGHTS.union(CastlingRights::WHITE_RIGHTS), CastlingRights::ANY_CASTLING);
     }
 
     #[test]
     fn rem_right() {
-        assert_eq!(CastlingRights::ANY_CASTLING.difference(&CastlingRights::WHITE_RIGHTS), CastlingRights::BLACK_RIGHTS);
-        assert_eq!(CastlingRights::ANY_CASTLING.difference(&CastlingRights::BLACK_RIGHTS), CastlingRights::WHITE_RIGHTS);
-        assert_eq!(CastlingRights::NO_CASTLING.difference(&CastlingRights::WHITE_OO), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::NO_CASTLING.difference(&CastlingRights::WHITE_OOO), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::NO_CASTLING.difference(&CastlingRights::BLACK_OO), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::NO_CASTLING.difference(&CastlingRights::BLACK_OOO), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::NO_CASTLING.difference(&CastlingRights::WHITE_RIGHTS), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::NO_CASTLING.difference(&CastlingRights::BLACK_RIGHTS), CastlingRights::NO_CASTLING);
-        assert_eq!(CastlingRights::WHITE_RIGHTS.difference(&CastlingRights::WHITE_OO), CastlingRights::WHITE_OOO);
-        assert_eq!(CastlingRights::WHITE_RIGHTS.difference(&CastlingRights::WHITE_OOO), CastlingRights::WHITE_OO);
-        assert_eq!(CastlingRights::BLACK_RIGHTS.difference(&CastlingRights::BLACK_OO), CastlingRights::BLACK_OOO);
-        assert_eq!(CastlingRights::BLACK_RIGHTS.difference(&CastlingRights::BLACK_OOO), CastlingRights::BLACK_OO);
-        assert_eq!(CastlingRights::BLACK_RIGHTS.difference(&CastlingRights::WHITE_RIGHTS), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::ANY_CASTLING.difference(CastlingRights::WHITE_RIGHTS), CastlingRights::BLACK_RIGHTS);
+        assert_eq!(CastlingRights::ANY_CASTLING.difference(CastlingRights::BLACK_RIGHTS), CastlingRights::WHITE_RIGHTS);
+        assert_eq!(CastlingRights::NO_CASTLING.difference(CastlingRights::WHITE_OO), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::NO_CASTLING.difference(CastlingRights::WHITE_OOO), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::NO_CASTLING.difference(CastlingRights::BLACK_OO), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::NO_CASTLING.difference(CastlingRights::BLACK_OOO), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::NO_CASTLING.difference(CastlingRights::WHITE_RIGHTS), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::NO_CASTLING.difference(CastlingRights::BLACK_RIGHTS), CastlingRights::NO_CASTLING);
+        assert_eq!(CastlingRights::WHITE_RIGHTS.difference(CastlingRights::WHITE_OO), CastlingRights::WHITE_OOO);
+        assert_eq!(CastlingRights::WHITE_RIGHTS.difference(CastlingRights::WHITE_OOO), CastlingRights::WHITE_OO);
+        assert_eq!(CastlingRights::BLACK_RIGHTS.difference(CastlingRights::BLACK_OO), CastlingRights::BLACK_OOO);
+        assert_eq!(CastlingRights::BLACK_RIGHTS.difference(CastlingRights::BLACK_OOO), CastlingRights::BLACK_OO);
+        assert_eq!(CastlingRights::BLACK_RIGHTS.difference(CastlingRights::WHITE_RIGHTS), CastlingRights::BLACK_RIGHTS);
     }
 }
