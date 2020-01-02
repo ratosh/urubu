@@ -2,6 +2,8 @@ use criterion::{black_box, Criterion, criterion_group, criterion_main};
 
 use urubu::types::color::Color;
 use urubu::types::square::Square;
+use urubu::simplified::position::Position;
+use urubu::simplified::perft::Perft;
 
 fn color_to_char(c: &mut Criterion) {
     c.bench_function("color_to_char", |b| {
@@ -21,5 +23,14 @@ fn square_forward(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, color_to_char, color_invert, square_forward);
+fn perft(c: &mut Criterion) {
+
+    let mut position = Position::default();
+    let mut perft = Perft::new();
+    c.bench_function("perft", |b| {
+        b.iter(|| perft.perft(&mut position.clone(), 3));
+    });
+}
+
+criterion_group!(benches, perft);
 criterion_main!(benches);
