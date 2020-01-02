@@ -105,11 +105,11 @@ impl MoveList {
             self.generate_capture_promotions(position, color, capture_mask);
             self.generate_quiet_promotions(position, color, mask);
             self.generate_pawn_capture(position, color, capture_mask);
+            self.generate_ep_capture(position, &mask);
             self.generate_moves(position, color, &PieceType::KNIGHT, capture_mask);
             self.generate_moves(position, color, &PieceType::BISHOP, capture_mask);
             self.generate_moves(position, color, &PieceType::ROOK, capture_mask);
             self.generate_moves(position, color, &PieceType::QUEEN, capture_mask);
-            self.generate_ep_capture(position, &mask);
         }
         self.generate_moves(position, color, &PieceType::KING, &position.color_bitboard(&their_color));
     }
@@ -209,9 +209,10 @@ mod test {
                 println!("move {}", board_move.to_string());
                 legal_moves += 1;
             } else {
-                println!("Invalid {}", board_move.to_string());
+                println!("invalid {}", board_move.to_string());
             }
         }
+        println!("legal moves {}", legal_moves);
         return legal_moves;
     }
 
@@ -454,6 +455,24 @@ mod test {
     fn gen683_3() {
         let legal_moves = count_moves("5b2/8/rp3qN1/p1k2p1r/PpbpP3/7P/2QP1PB1/RN2K2R w KQ -");
         assert_eq!(legal_moves, 30)
+    }
+
+    #[test]
+    fn gen4136() {
+        let legal_moves = count_moves("2b1k3/r2qbpr1/n1p1p2n/1p1p4/Pp5P/2PP1P1B/4P3/RNBQK2R w KQ -");
+        assert_eq!(legal_moves, 34)
+    }
+
+    #[test]
+    fn gen5() {
+        let legal_moves = count_moves("rn2kbnr/p1q1ppp1/1ppp3p/8/4B1P1/2P5/PPQPPP2/RNB1K1NR b KQkq -");
+        assert_eq!(legal_moves, 22)
+    }
+
+    #[test]
+    fn gen94() {
+        let legal_moves = count_moves("2b1kbnB/rp1qp3/3p3p/2pP1pp1/pnP3P1/PP2P2P/4QP2/RN2KBNR w KQ c6");
+        assert_eq!(legal_moves, 29)
     }
 }
 

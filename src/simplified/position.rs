@@ -70,6 +70,10 @@ impl Position {
         return result;
     }
 
+    pub fn default() -> Self {
+        Position::from_fen(Position::DEFAULT_FEN)
+    }
+
     pub fn from_fen(fen: &str) -> Self {
         let mut result = Position::empty();
         let mut file: usize = File::FILE_A.to_usize();
@@ -257,46 +261,47 @@ impl Position {
     #[inline]
     pub fn is_legal_move(&self, board_move: &BoardMove) -> bool {
         let move_type = board_move.move_type();
-        let our_color = self.color_to_move;
-        let their_color = our_color.reverse();
+        let color_our = self.color_to_move;
+        let color_their = color_our.reverse();
         return match move_type {
             MoveType::NORMAL => {
                 //Check if king is under attack after board changes
                 let piece_type = self.piece_type_board[&board_move.square_from()];
                 if piece_type == PieceType::KING {
-                    let our_bitboard = self.color_bitboard(&our_color).invert(&Bitboard::from(board_move.square_from()));
-                    let their_bitboard = self.color_bitboard(&their_color);
-                    board_move.square_to().attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+                    let our_bitboard = self.color_bitboard(&color_our).invert(&Bitboard::from(board_move.square_from()));
+                    let their_bitboard = self.color_bitboard(&color_their);
+                    board_move.square_to().attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
                 } else {
-                    let our_bitboard = self.color_bitboard(&our_color)
+                    let our_bitboard = self.color_bitboard(&color_our)
                         .invert(&Bitboard::from(board_move.square_from()))
                         .union(&Bitboard::from(board_move.square_to()));
-                    let their_bitboard = self.color_bitboard(&their_color)
+                    let their_bitboard = self.color_bitboard(&color_their)
                         .difference(&Bitboard::from(board_move.square_to()));
-                    self.king_square[&self.color_to_move].attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+                    self.king_square[&self.color_to_move].attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
                 }
             }
             MoveType::PASSANT => {
                 //Check if king is under attack after board changes
-                let our_bitboard = self.color_bitboard(&our_color)
+                let our_bitboard = self.color_bitboard(&color_our)
                     .invert(&Bitboard::from(board_move.square_from()))
                     .union(&Bitboard::from(board_move.square_to()));
-                let their_bitboard = self.color_bitboard(&their_color)
-                    .difference(&Bitboard::from(board_move.square_to().forward(&our_color)));
-                self.king_square[&self.color_to_move].attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+                let their_bitboard = self.color_bitboard(&color_their)
+                    .difference(&Bitboard::from(board_move.square_to().forward(&color_their)));
+                self.king_square[&self.color_to_move].attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
             }
             MoveType::CASTLING => {
-                let path = board_move.square_from().between(&board_move.square_to());
+                let path = board_move.square_from().between(&board_move.square_to())
+                    .with_square(&board_move.square_to());
                 !path.attacks_to(self, &self.color_to_move, &self.color_bitboard[&self.color_to_move], &self.color_bitboard[&self.color_to_move.reverse()])
             }
             // PROMOTIONS
             _ => {
-                let our_bitboard = self.color_bitboard(&our_color)
+                let our_bitboard = self.color_bitboard(&color_our)
                     .invert(&Bitboard::from(board_move.square_from()))
                     .union(&Bitboard::from(board_move.square_to()));
-                let their_bitboard = self.color_bitboard(&their_color)
+                let their_bitboard = self.color_bitboard(&color_their)
                     .difference(&Bitboard::from(board_move.square_to()));
-                self.king_square[&self.color_to_move].attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+                self.king_square[&self.color_to_move].attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
             }
         };
     }
@@ -315,17 +320,16 @@ impl Position {
 
         match move_type {
             MoveType::NORMAL => {
-                debug_assert!(self.state.ep_square.is_some());
+                self.state.clear_ep();
                 let piece_captured = self.piece_type_board[&square_to];
                 if piece_captured != PieceType::NONE {
-                    self.remove_piece(&color_their, &PieceType::PAWN, &square_to);
+                    self.remove_piece(&color_their, &piece_captured, &square_to);
                     self.state.rule_50 = 0;
                 }
                 self.move_piece(&color_our, &piece_type, &square_from, &square_to);
                 if piece_type == PieceType::PAWN {
                     self.state.rule_50 = 0;
-                    if square_from.0 ^ square_to.0 == 16 &&
-                        square_to.neighbour().intersect(&self.piece_bitboard(&color_their, &PieceType::PAWN)).is_not_empty() {
+                    if square_from.0 ^ square_to.0 == 16 {
                         self.state.set_ep(&square_from.forward(&color_our));
                     }
                 } else {
@@ -334,20 +338,25 @@ impl Position {
             }
             MoveType::PASSANT => {
                 debug_assert!(self.state.ep_square.is_some());
-                let square_captured = self.state.ep_square.unwrap();
-                self.remove_piece(&color_their, &PieceType::PAWN, &square_captured);
+                self.remove_piece(&color_their, &PieceType::PAWN, &square_to.forward(&color_their));
                 self.move_piece(&color_our, &PieceType::PAWN, &square_from, &square_to);
                 self.state.clear_ep();
             }
             MoveType::CASTLING => {
-                self.do_castle(&color_our, &square_from, &square_to);
                 self.state.clear_ep();
+                self.do_castle(&color_our, &square_from, &square_to);
                 self.update_castling_rights(&square_from, &square_to);
             }
             // PROMOTIONS
             _ => {
+                self.state.clear_ep();
                 let promoted_piece = move_type.promoted_piece_type();
+                let piece_captured = self.piece_type_board[&square_to];
                 debug_assert_ne!(promoted_piece, PieceType::NONE);
+                if piece_captured != PieceType::NONE {
+                    self.remove_piece(&color_their, &piece_captured, &square_to);
+                    self.state.rule_50 = 0;
+                }
                 self.remove_piece(&color_our, &PieceType::PAWN, &square_from);
                 self.add_piece(&color_our, &promoted_piece, &square_to);
                 self.state.rule_50 = 0;

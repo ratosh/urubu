@@ -30,6 +30,8 @@ impl Perft {
                 let mut clone = position.clone();
                 clone.do_move(&board_move);
                 println!("{} -> {}", board_move.to_string(), self.perft(&mut clone, depth - 1));
+            } else {
+                println!("illegal -> {}", board_move.to_string());
             }
         }
         self.move_list.end_ply();
@@ -47,8 +49,9 @@ impl Perft {
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            let mut clone = position.clone();
-            if clone.do_move(&board_move) {
+            if position.is_legal_move(&board_move) {
+                let mut clone = position.clone();
+                clone.do_move(&board_move);
                 result += self.perft(&mut clone, depth - 1);
                 self.valid_moves += 1;
             } else {
@@ -71,6 +74,7 @@ mod test {
     use crate::types::square::Square;
     use crate::simplified::perft::Perft;
     use crate::simplified::position::Position;
+    use crate::types::move_type::MoveType;
 
     fn check_perft_file(path: &str, depth_limit: u8) {
         let file = File::open(path).expect("failed to open test suite");
@@ -108,6 +112,22 @@ mod test {
     #[test]
 //    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 5);
+        check_perft_file("G:/chess/epds/random.perft", 3);
+    }
+
+    #[test]
+    fn test_divide() {
+        let mut position = Position::from_fen("rnbqk1nr/p2p3p/1p5b/2pPppp1/8/P7/1PPQPPPP/RNB1KBNR w KQkq c6");
+        let mut perft = Perft::new();
+        perft.divide(&mut position, 2);
+    }
+
+    #[test]
+    fn test_divide1() {
+        let mut position = Position::from_fen("2b1kbnB/rppqp3/3p3p/3P1pp1/pnP3P1/PP2P2P/4QP2/RN2KBNR b KQ -");
+        let board_move = BoardMove::build_normal(&Square::C7, &Square::C5);
+        position.do_move(&board_move);
+        let mut perft = Perft::new();
+        perft.divide(&mut position, 1);
     }
 }
