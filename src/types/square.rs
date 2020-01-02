@@ -249,16 +249,16 @@ impl Square {
     }
 }
 
-impl ops::Index<&Square> for [PieceType] {
+impl ops::Index<Square> for [PieceType] {
     type Output = PieceType;
 
-    fn index(&self, index: &Square) -> &PieceType {
+    fn index(&self, index: Square) -> &PieceType {
         &self[index.to_usize()]
     }
 }
 
-impl ops::IndexMut<&Square> for [PieceType] {
-    fn index_mut(&mut self, index: &Square) -> &mut PieceType {
+impl ops::IndexMut<Square> for [PieceType] {
+    fn index_mut(&mut self, index: Square) -> &mut PieceType {
         &mut self[index.to_usize()]
     }
 }

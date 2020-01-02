@@ -21,8 +21,8 @@ impl Perft {
             return;
         }
         self.move_list.start_ply();
-        self.move_list.generate_quiets(position);
         self.move_list.generate_noisy(position);
+        self.move_list.generate_quiets(position);
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
@@ -42,8 +42,8 @@ impl Perft {
             return 1;
         }
         self.move_list.start_ply();
-        self.move_list.generate_quiets(position);
         self.move_list.generate_noisy(position);
+        self.move_list.generate_quiets(position);
 
         let mut result = 0;
 
@@ -112,21 +112,22 @@ mod test {
     #[test]
 //    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 3);
+        check_perft_file("G:/chess/epds/random.perft", 6);
     }
 
     #[test]
     fn test_divide() {
-        let mut position = Position::from_fen("rnbqk1nr/p2p3p/1p5b/2pPppp1/8/P7/1PPQPPPP/RNB1KBNR w KQkq c6");
+        let mut position = Position::from_fen("2bqk1nr/p5bp/n2p1P2/p1pPp3/P5p1/RrP5/1P1NPP1P/2B1KBNR w Kk -");
         let mut perft = Perft::new();
-        perft.divide(&mut position, 2);
+        perft.divide(&mut position, 4);
     }
 
     #[test]
     fn test_divide1() {
-        let mut position = Position::from_fen("2b1kbnB/rppqp3/3p3p/3P1pp1/pnP3P1/PP2P2P/4QP2/RN2KBNR b KQ -");
-        let board_move = BoardMove::build_normal(&Square::C7, &Square::C5);
-        position.do_move(&board_move);
+        let mut position = Position::from_fen("2bqk1nr/p5bp/n2p1P2/p1pPp3/P5p1/RrP5/1P1NPP1P/2B1KBNR w Kk -");
+        position.do_move(&BoardMove::build_normal(Square::F6, Square::G7));
+        position.do_move(&BoardMove::build_normal(Square::G8, Square::F6));
+        position.do_move(&BoardMove::build_move(Square::G7, Square::H8, &MoveType::PROMOTION_BISHOP));
         let mut perft = Perft::new();
         perft.divide(&mut position, 1);
     }

@@ -34,7 +34,7 @@ impl PositionState {
     }
 
     #[inline]
-    pub fn change_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
+    pub fn change_piece(&mut self, color: &Color, piece_type: &PieceType, square: Square) {
         // Updating zobrist info
         self.zkey.change_piece(color, piece_type, square);
         if piece_type == &PieceType::PAWN {
@@ -42,7 +42,7 @@ impl PositionState {
         }
     }
 
-    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: &Square, to: &Square) {
+    pub fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: Square, to: Square) {
         // Updating zobrist info
         self.zkey.move_piece(color, piece_type, from, to);
         if piece_type == &PieceType::PAWN {
@@ -62,14 +62,14 @@ impl PositionState {
     #[inline]
     pub fn clear_ep(&mut self) {
         if self.ep_square.is_some() {
-            self.zkey.set_ep(&self.ep_square.unwrap());
+            self.zkey.set_ep(self.ep_square.unwrap());
             self.ep_square = None;
         }
     }
 
     #[inline]
-    pub fn set_ep(&mut self, square: &Square) {
-        self.ep_square = Some(*square);
+    pub fn set_ep(&mut self, square: Square) {
+        self.ep_square = Some(square);
         self.zkey.set_ep(square);
     }
 }

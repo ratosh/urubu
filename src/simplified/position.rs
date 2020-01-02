@@ -90,7 +90,7 @@ impl Position {
                 file += skip;
             } else {
                 let (color, piece_type) = PieceType::from_char(token);
-                result.add_piece(&color, &piece_type, &Square::from_file_rank(&File::FILES[file], &Rank::RANKS[rank]));
+                result.add_piece(&color, &piece_type, Square::from_file_rank(&File::FILES[file], &Rank::RANKS[rank]));
                 file += 1;
             }
         }
@@ -181,10 +181,10 @@ impl Position {
     }
 
     #[inline]
-    fn remove_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
+    fn remove_piece(&mut self, color: &Color, piece_type: &PieceType, square: Square) {
         let bitboard = Bitboard::from(square);
-        self.piece_bitboard[piece_type] = self.piece_bitboard[piece_type].difference(&bitboard);
-        self.color_bitboard[color] = self.color_bitboard[color].difference(&bitboard);
+        self.piece_bitboard[piece_type] = self.piece_bitboard[piece_type].difference(bitboard);
+        self.color_bitboard[color] = self.color_bitboard[color].difference(bitboard);
 
         self.piece_type_board[square] = PieceType::NONE;
 
@@ -193,25 +193,25 @@ impl Position {
     }
 
     #[inline]
-    pub fn add_piece(&mut self, color: &Color, piece_type: &PieceType, square: &Square) {
+    pub fn add_piece(&mut self, color: &Color, piece_type: &PieceType, square: Square) {
         let bitboard = Bitboard::from(square);
-        self.piece_bitboard[piece_type] = self.piece_bitboard[piece_type].union(&bitboard);
-        self.color_bitboard[color] = self.color_bitboard[color].union(&bitboard);
+        self.piece_bitboard[piece_type] = self.piece_bitboard[piece_type].union(bitboard);
+        self.color_bitboard[color] = self.color_bitboard[color].union(bitboard);
 
         self.piece_type_board[square] = *piece_type;
 
         // Updating zobrist info
         self.state.change_piece(color, piece_type, square);
         if piece_type == &PieceType::KING {
-            self.king_square[color] = *square;
+            self.king_square[color] = square;
         }
     }
 
     #[inline]
-    fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: &Square, to: &Square) {
-        let bitboard = Bitboard::from(from).union(&Bitboard::from(to));
-        self.piece_bitboard[piece_type] = self.piece_bitboard[piece_type].invert(&bitboard);
-        self.color_bitboard[color] = self.color_bitboard[color].invert(&bitboard);
+    fn move_piece(&mut self, color: &Color, piece_type: &PieceType, from: Square, to: Square) {
+        let bitboard = Bitboard::from(from).union(Bitboard::from(to));
+        self.piece_bitboard[piece_type] = self.piece_bitboard[piece_type].invert(bitboard);
+        self.color_bitboard[color] = self.color_bitboard[color].invert(bitboard);
 
         self.piece_type_board[from] = PieceType::NONE;
         self.piece_type_board[to] = *piece_type;
@@ -219,12 +219,12 @@ impl Position {
         // Updating zobrist info
         self.state.move_piece(color, piece_type, from, to);
         if piece_type == &PieceType::KING {
-            self.king_square[color] = *to;
+            self.king_square[color] = to;
         }
     }
 
     #[inline]
-    pub fn color_at(&self, square: &Square) -> Option<Color> {
+    pub fn color_at(&self, square: Square) -> Option<Color> {
         return if self.color_bitboard[&Color::White] == Bitboard::from(square) {
             Some(Color::White)
         } else if self.color_bitboard[&Color::Black] == Bitboard::from(square) {
@@ -236,21 +236,21 @@ impl Position {
 
     #[inline]
     pub fn piece_bitboard(&self, color: &Color, piece_type: &PieceType) -> Bitboard {
-        self.piece_bitboard[piece_type].intersect(&self.color_bitboard(color))
+        self.piece_bitboard[piece_type].intersect(self.color_bitboard(color))
     }
 
     #[inline]
-    pub fn color_bitboard(&self, color: &Color) -> &Bitboard {
-        &self.color_bitboard[color]
+    pub fn color_bitboard(&self, color: &Color) -> Bitboard {
+        self.color_bitboard[color]
     }
 
     #[inline]
-    pub fn piece_at(&self, square: &Square) -> &PieceType {
+    pub fn piece_at(&self, square: Square) -> &PieceType {
         &self.piece_type_board[square]
     }
 
     #[inline]
-    pub fn update_castling_rights(&mut self, square_from: &Square, square_to: &Square) {
+    pub fn update_castling_rights(&mut self, square_from: Square, square_to: Square) {
         let right_change = self.castling_rights_masks[square_from.to_usize()]
             .union(&self.castling_rights_masks[square_to.to_usize()]);
 
@@ -266,42 +266,42 @@ impl Position {
         return match move_type {
             MoveType::NORMAL => {
                 //Check if king is under attack after board changes
-                let piece_type = self.piece_type_board[&board_move.square_from()];
+                let piece_type = self.piece_type_board[board_move.square_from()];
                 if piece_type == PieceType::KING {
-                    let our_bitboard = self.color_bitboard(&color_our).invert(&Bitboard::from(board_move.square_from()));
+                    let our_bitboard = self.color_bitboard(&color_our).invert(Bitboard::from(board_move.square_from()));
                     let their_bitboard = self.color_bitboard(&color_their);
-                    board_move.square_to().attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
+                    board_move.square_to().attacks_to(self, &color_our, our_bitboard, their_bitboard).is_empty()
                 } else {
                     let our_bitboard = self.color_bitboard(&color_our)
-                        .invert(&Bitboard::from(board_move.square_from()))
-                        .union(&Bitboard::from(board_move.square_to()));
+                        .invert(Bitboard::from(board_move.square_from()))
+                        .union(Bitboard::from(board_move.square_to()));
                     let their_bitboard = self.color_bitboard(&color_their)
-                        .difference(&Bitboard::from(board_move.square_to()));
-                    self.king_square[&self.color_to_move].attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
+                        .difference(Bitboard::from(board_move.square_to()));
+                    self.king_square[&self.color_to_move].attacks_to(self, &color_our, our_bitboard, their_bitboard).is_empty()
                 }
             }
             MoveType::PASSANT => {
                 //Check if king is under attack after board changes
                 let our_bitboard = self.color_bitboard(&color_our)
-                    .invert(&Bitboard::from(board_move.square_from()))
-                    .union(&Bitboard::from(board_move.square_to()));
+                    .invert(Bitboard::from(board_move.square_from()))
+                    .union(Bitboard::from(board_move.square_to()));
                 let their_bitboard = self.color_bitboard(&color_their)
-                    .difference(&Bitboard::from(board_move.square_to().forward(&color_their)));
-                self.king_square[&self.color_to_move].attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
+                    .difference(Bitboard::from(board_move.square_to().forward(&color_their)));
+                self.king_square[&self.color_to_move].attacks_to(self, &color_our, our_bitboard, their_bitboard).is_empty()
             }
             MoveType::CASTLING => {
-                let path = board_move.square_from().between(&board_move.square_to())
-                    .with_square(&board_move.square_to());
-                !path.attacks_to(self, &self.color_to_move, &self.color_bitboard[&self.color_to_move], &self.color_bitboard[&self.color_to_move.reverse()])
+                let path = board_move.square_from().between(board_move.square_to())
+                    .with_square(board_move.square_to());
+                !path.attacks_to(self, &self.color_to_move, self.color_bitboard[&self.color_to_move], self.color_bitboard[&self.color_to_move.reverse()])
             }
             // PROMOTIONS
             _ => {
                 let our_bitboard = self.color_bitboard(&color_our)
-                    .invert(&Bitboard::from(board_move.square_from()))
-                    .union(&Bitboard::from(board_move.square_to()));
+                    .invert(Bitboard::from(board_move.square_from()))
+                    .union(Bitboard::from(board_move.square_to()));
                 let their_bitboard = self.color_bitboard(&color_their)
-                    .difference(&Bitboard::from(board_move.square_to()));
-                self.king_square[&self.color_to_move].attacks_to(self, &color_our, &our_bitboard, &their_bitboard).is_empty()
+                    .difference(Bitboard::from(board_move.square_to()));
+                self.king_square[&self.color_to_move].attacks_to(self, &color_our, our_bitboard, their_bitboard).is_empty()
             }
         };
     }
@@ -312,7 +312,7 @@ impl Position {
 
         let square_from = board_move.square_from();
         let square_to = board_move.square_to();
-        let piece_type = self.piece_type_board[&square_from];
+        let piece_type = self.piece_type_board[square_from];
         let move_type = board_move.move_type();
 
         let color_our = self.color_to_move;
@@ -321,58 +321,56 @@ impl Position {
         match move_type {
             MoveType::NORMAL => {
                 self.state.clear_ep();
-                let piece_captured = self.piece_type_board[&square_to];
+                let piece_captured = self.piece_type_board[square_to];
                 if piece_captured != PieceType::NONE {
-                    self.remove_piece(&color_their, &piece_captured, &square_to);
+                    self.remove_piece(&color_their, &piece_captured, square_to);
                     self.state.rule_50 = 0;
                 }
-                self.move_piece(&color_our, &piece_type, &square_from, &square_to);
+                self.move_piece(&color_our, &piece_type, square_from, square_to);
                 if piece_type == PieceType::PAWN {
                     self.state.rule_50 = 0;
                     if square_from.0 ^ square_to.0 == 16 {
-                        self.state.set_ep(&square_from.forward(&color_our));
+                        self.state.set_ep(square_from.forward(&color_our));
                     }
-                } else {
-                    self.update_castling_rights(&square_from, &square_to);
                 }
             }
             MoveType::PASSANT => {
                 debug_assert!(self.state.ep_square.is_some());
-                self.remove_piece(&color_their, &PieceType::PAWN, &square_to.forward(&color_their));
-                self.move_piece(&color_our, &PieceType::PAWN, &square_from, &square_to);
+                self.remove_piece(&color_their, &PieceType::PAWN, square_to.forward(&color_their));
+                self.move_piece(&color_our, &PieceType::PAWN, square_from, square_to);
                 self.state.clear_ep();
             }
             MoveType::CASTLING => {
                 self.state.clear_ep();
-                self.do_castle(&color_our, &square_from, &square_to);
-                self.update_castling_rights(&square_from, &square_to);
+                self.do_castle(&color_our, square_from, square_to);
             }
             // PROMOTIONS
             _ => {
                 self.state.clear_ep();
                 let promoted_piece = move_type.promoted_piece_type();
-                let piece_captured = self.piece_type_board[&square_to];
+                let piece_captured = self.piece_type_board[square_to];
                 debug_assert_ne!(promoted_piece, PieceType::NONE);
                 if piece_captured != PieceType::NONE {
-                    self.remove_piece(&color_their, &piece_captured, &square_to);
+                    self.remove_piece(&color_their, &piece_captured, square_to);
                     self.state.rule_50 = 0;
                 }
-                self.remove_piece(&color_our, &PieceType::PAWN, &square_from);
-                self.add_piece(&color_our, &promoted_piece, &square_to);
+                self.remove_piece(&color_our, &PieceType::PAWN, square_from);
+                self.add_piece(&color_our, &promoted_piece, square_to);
                 self.state.rule_50 = 0;
             }
         }
+        self.update_castling_rights(square_from, square_to);
 
         self.color_to_move = color_their;
         self.state.zkey.change_color();
-        self.piece_bitboard[&PieceType::NONE] = self.color_bitboard[&Color::White].union(&self.color_bitboard[&Color::Black]);
+        self.piece_bitboard[&PieceType::NONE] = self.color_bitboard[&Color::White].union(self.color_bitboard[&Color::Black]);
 
         self.set_checkbitboard();
         return true;
     }
 
     #[inline]
-    fn do_castle(&mut self, color: &Color, square_from: &Square, square_to: &Square) {
+    fn do_castle(&mut self, color: &Color, square_from: Square, square_to: Square) {
         let castling_side = if square_to.0 > square_from.0 {
             CastlingSide::HSide
         } else {
@@ -382,24 +380,24 @@ impl Position {
         let square_rook_from = self.initial_rook_square[castling_index.to_usize()];
         let square_rook_to = castling_index.square_rook_to();
 
-        self.move_piece(color, &PieceType::KING, &square_from, &square_to);
-        self.move_piece(color, &PieceType::ROOK, &square_rook_from, &square_rook_to);
+        self.move_piece(color, &PieceType::KING, square_from, square_to);
+        self.move_piece(color, &PieceType::ROOK, square_rook_from, square_rook_to);
     }
 
     #[inline]
     fn set_checkbitboard(&mut self) {
         self.state.check_bitboard = self.king_square[&self.color_to_move]
-            .attacks_to(self, &self.color_to_move, &self.color_bitboard[&self.color_to_move], &self.color_bitboard[&self.color_to_move.reverse()]);
+            .attacks_to(self, &self.color_to_move, self.color_bitboard[&self.color_to_move], self.color_bitboard[&self.color_to_move.reverse()]);
     }
 
     #[inline]
     fn bishop_like_pieces(&self) -> Bitboard {
-        self.piece_bitboard[&PieceType::BISHOP].union(&self.piece_bitboard[&PieceType::QUEEN])
+        self.piece_bitboard[&PieceType::BISHOP].union(self.piece_bitboard[&PieceType::QUEEN])
     }
 
     #[inline]
     fn rook_like_pieces(&self) -> Bitboard {
-        self.piece_bitboard[&PieceType::ROOK].union(&self.piece_bitboard[&PieceType::QUEEN])
+        self.piece_bitboard[&PieceType::ROOK].union(self.piece_bitboard[&PieceType::QUEEN])
     }
 
     #[inline]
@@ -414,7 +412,7 @@ impl Position {
 
     #[inline]
     pub fn game_bitboard(&self) -> Bitboard {
-        self.color_bitboard[&Color::White].union(&self.color_bitboard[&Color::Black])
+        self.color_bitboard[&Color::White].union(self.color_bitboard[&Color::Black])
     }
 
     #[inline]
@@ -423,20 +421,20 @@ impl Position {
     }
 
     #[inline]
-    pub fn king_square(&self, color: &Color) -> &Square {
-        &self.king_square[color]
+    pub fn king_square(&self, color: &Color) -> Square {
+        self.king_square[color]
     }
 
     #[inline]
-    pub fn rook_from(&self, castling_index: &CastlingIndex) -> &Square {
-        &self.initial_rook_square[castling_index.to_usize()]
+    pub fn rook_from(&self, castling_index: &CastlingIndex) -> Square {
+        self.initial_rook_square[castling_index.to_usize()]
     }
 }
 
 impl Bitboard {
 
     #[inline]
-    pub fn attacks_to(&self, position: &Position, defending_color: &Color, our_bitboard: &Bitboard, their_bitboard: &Bitboard) -> bool {
+    pub fn attacks_to(&self, position: &Position, defending_color: &Color, our_bitboard: Bitboard, their_bitboard: Bitboard) -> bool {
         for square in self.iterator() {
             if square.attacks_to(position, defending_color, our_bitboard, their_bitboard).is_not_empty() {
                 return true;
@@ -449,13 +447,13 @@ impl Bitboard {
 impl Square {
 
     #[inline]
-    pub fn attacks_to(&self, position: &Position, defending_color: &Color, our_bitboard: &Bitboard, their_bitboard: &Bitboard) -> Bitboard {
-        let bitboard = &our_bitboard.union(their_bitboard);
-        self.pawn_attacks(defending_color).intersect(&position.piece_bitboard[&PieceType::PAWN])
-            .union(&self.knight_moves().intersect(&position.piece_bitboard[&PieceType::KNIGHT]))
-            .union(&self.bishop_moves(bitboard).intersect(&position.bishop_like_pieces()))
-            .union(&self.rook_moves(bitboard).intersect(&position.rook_like_pieces()))
-            .union(&self.king_moves().intersect(&position.piece_bitboard[&PieceType::KING]))
+    pub fn attacks_to(&self, position: &Position, defending_color: &Color, our_bitboard: Bitboard, their_bitboard: Bitboard) -> Bitboard {
+        let bitboard = our_bitboard.union(their_bitboard);
+        self.pawn_attacks(defending_color).intersect(position.piece_bitboard[&PieceType::PAWN])
+            .union(self.knight_moves().intersect(position.piece_bitboard[&PieceType::KNIGHT]))
+            .union(self.bishop_moves(bitboard).intersect(position.bishop_like_pieces()))
+            .union(self.rook_moves(bitboard).intersect(position.rook_like_pieces()))
+            .union(self.king_moves().intersect(position.piece_bitboard[&PieceType::KING]))
             .intersect(their_bitboard)
     }
 }
@@ -474,48 +472,48 @@ mod test {
         let position = Position::from_fen(Position::DEFAULT_FEN);
         assert_eq!(position.color_to_move, Color::White);
 
-        assert_eq!(position.color_at(&Square::A1).unwrap(), Color::White);
-        assert_eq!(position.color_at(&Square::A2).unwrap(), Color::White);
-        assert_eq!(position.color_at(&Square::A3), None);
-        assert_eq!(position.color_at(&Square::A4), None);
-        assert_eq!(position.color_at(&Square::A5), None);
-        assert_eq!(position.color_at(&Square::A6), None);
-        assert_eq!(position.color_at(&Square::A7).unwrap(), Color::Black);
-        assert_eq!(position.color_at(&Square::A8).unwrap(), Color::Black);
+        assert_eq!(position.color_at(Square::A1).unwrap(), Color::White);
+        assert_eq!(position.color_at(Square::A2).unwrap(), Color::White);
+        assert_eq!(position.color_at(Square::A3), None);
+        assert_eq!(position.color_at(Square::A4), None);
+        assert_eq!(position.color_at(Square::A5), None);
+        assert_eq!(position.color_at(Square::A6), None);
+        assert_eq!(position.color_at(Square::A7).unwrap(), Color::Black);
+        assert_eq!(position.color_at(Square::A8).unwrap(), Color::Black);
 
-        assert_eq!(position.piece_at(&Square::A1), &PieceType::ROOK);
-        assert_eq!(position.piece_at(&Square::A2), &PieceType::PAWN);
-        assert_eq!(position.piece_at(&Square::A3), &PieceType::NONE);
-        assert_eq!(position.piece_at(&Square::A4), &PieceType::NONE);
-        assert_eq!(position.piece_at(&Square::A5), &PieceType::NONE);
-        assert_eq!(position.piece_at(&Square::A6), &PieceType::NONE);
-        assert_eq!(position.piece_at(&Square::A7), &PieceType::PAWN);
-        assert_eq!(position.piece_at(&Square::A8), &PieceType::ROOK);
+        assert_eq!(position.piece_at(Square::A1), &PieceType::ROOK);
+        assert_eq!(position.piece_at(Square::A2), &PieceType::PAWN);
+        assert_eq!(position.piece_at(Square::A3), &PieceType::NONE);
+        assert_eq!(position.piece_at(Square::A4), &PieceType::NONE);
+        assert_eq!(position.piece_at(Square::A5), &PieceType::NONE);
+        assert_eq!(position.piece_at(Square::A6), &PieceType::NONE);
+        assert_eq!(position.piece_at(Square::A7), &PieceType::PAWN);
+        assert_eq!(position.piece_at(Square::A8), &PieceType::ROOK);
     }
 
     #[test]
     fn move_piece() {
         let mut position = Position::from_fen(Position::DEFAULT_FEN);
         let zkey = position.state.zkey.clone();
-        position.move_piece(&Color::White, &PieceType::ROOK, &Square::A1, &Square::A3);
+        position.move_piece(&Color::White, &PieceType::ROOK, Square::A1, Square::A3);
         assert_ne!(zkey, position.state.zkey);
-        assert_eq!(position.color_at(&Square::A1), None);
-        assert_eq!(position.piece_at(&Square::A1), &PieceType::NONE);
+        assert_eq!(position.color_at(Square::A1), None);
+        assert_eq!(position.piece_at(Square::A1), &PieceType::NONE);
 
-        assert_eq!(position.color_at(&Square::A3).unwrap(), Color::White);
-        assert_eq!(position.piece_at(&Square::A3), &PieceType::ROOK);
+        assert_eq!(position.color_at(Square::A3).unwrap(), Color::White);
+        assert_eq!(position.piece_at(Square::A3), &PieceType::ROOK);
     }
 
     #[test]
     fn move_pawn() {
         let mut position = Position::from_fen(Position::DEFAULT_FEN);
         let zkey_pawn = position.state.zkey_pawn.clone();
-        position.move_piece(&Color::White, &PieceType::PAWN, &Square::A2, &Square::A3);
+        position.move_piece(&Color::White, &PieceType::PAWN, Square::A2, Square::A3);
         assert_ne!(zkey_pawn, position.state.zkey_pawn);
-        assert_eq!(position.color_at(&Square::A2), None);
-        assert_eq!(position.piece_at(&Square::A2), &PieceType::NONE);
+        assert_eq!(position.color_at(Square::A2), None);
+        assert_eq!(position.piece_at(Square::A2), &PieceType::NONE);
 
-        assert_eq!(position.color_at(&Square::A3).unwrap(), Color::White);
-        assert_eq!(position.piece_at(&Square::A3), &PieceType::PAWN);
+        assert_eq!(position.color_at(Square::A3).unwrap(), Color::White);
+        assert_eq!(position.piece_at(Square::A3), &PieceType::PAWN);
     }
 }
