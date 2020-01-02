@@ -19,10 +19,10 @@ impl MoveList {
         let mask = &position.get_mask(our_color).intersect(&position.empty_bitboard());
         if mask.is_not_empty() {
             self.generate_quiet_pawn_moves(position, our_color, mask);
-            self.generate_moves(position,  our_color, &PieceType::KNIGHT, mask);
-            self.generate_moves(position,  our_color, &PieceType::BISHOP, mask);
-            self.generate_moves(position,  our_color, &PieceType::ROOK, mask);
-            self.generate_moves(position,  our_color, &PieceType::QUEEN, mask);
+            self.generate_moves(position, our_color, &PieceType::KNIGHT, mask);
+            self.generate_moves(position, our_color, &PieceType::BISHOP, mask);
+            self.generate_moves(position, our_color, &PieceType::ROOK, mask);
+            self.generate_moves(position, our_color, &PieceType::QUEEN, mask);
         }
         self.generate_moves(position, our_color, &PieceType::KING, &position.empty_bitboard());
     }
@@ -33,7 +33,13 @@ impl MoveList {
         let king_square = position.king_square(&color);
         for castling_index in possible_castling.iterator() {
             let king_to = castling_index.square_king_to();
-            self.add_move(BoardMove::build_castling(&king_square, &king_to));
+            let rook_from = position.rook_from(&castling_index);
+            let rook_to = castling_index.square_rook_to();
+            let path = king_square.between(&king_to)
+                .union(&rook_from.between(&rook_to));
+            if path.intersect(&position.game_bitboard()).is_empty() {
+                self.add_move(BoardMove::build_castling(&king_square, &king_to));
+            }
         }
     }
 
@@ -46,8 +52,9 @@ impl MoveList {
 
         for square in pawn_bitboard.iterator() {
             let move_bitboard = square.pawn_move(&color)
-                    .union(&square.pawn_double_move(&color))
-                    .intersect(mask);
+                .union(&square.pawn_double_move(&color))
+                .intersect(&position.empty_bitboard())
+                .intersect(mask);
 
             self.register_moves_from_square(&color, &square, &move_bitboard);
         }
@@ -59,19 +66,19 @@ impl MoveList {
             let bitboard = match piece_type {
                 &PieceType::KNIGHT => {
                     square.knight_moves()
-                },
+                }
                 &PieceType::BISHOP => {
-                    square.bishop_moves(position.game_bitboard())
-                },
+                    square.bishop_moves(&position.game_bitboard())
+                }
                 &PieceType::ROOK => {
-                    square.rook_moves(position.game_bitboard())
-                },
+                    square.rook_moves(&position.game_bitboard())
+                }
                 &PieceType::QUEEN => {
-                    square.bishop_moves(position.game_bitboard()).union(&square.rook_moves(position.game_bitboard()))
-                },
+                    square.bishop_moves(&position.game_bitboard()).union(&square.rook_moves(&position.game_bitboard()))
+                }
                 &PieceType::KING => {
                     square.king_moves()
-                },
+                }
                 _ => {
                     Bitboard::EMPTY
                 }

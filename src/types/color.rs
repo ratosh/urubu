@@ -70,11 +70,6 @@ impl Color {
     }
 
     #[inline]
-    pub fn is_white(&self) -> bool {
-        *self == Color::White
-    }
-
-    #[inline]
     pub fn reverse(&self) -> Color {
         Color::unsafe_creation(self.to_i8() ^ 1)
     }

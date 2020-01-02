@@ -1,9 +1,7 @@
-use crate::cached::attack_info::AttackInfo;
-use crate::cached::board::Board;
 use crate::types::move_list::MoveList;
+use crate::simplified::position::Position;
 
 pub struct Perft {
-    attack_info: AttackInfo,
     move_list: MoveList,
     invalid_moves: u64,
     valid_moves: u64
@@ -12,44 +10,44 @@ pub struct Perft {
 impl Perft {
     pub fn new() -> Self {
         Self {
-            attack_info: AttackInfo::new(),
             move_list: MoveList::new(),
             invalid_moves: 0,
             valid_moves: 0,
         }
     }
 
-    pub fn divide(&mut self, board: &mut Board, depth: u8) {
+    pub fn divide(&mut self, position: &mut Position, depth: u8) {
         if depth == 0 {
             return;
         }
         self.move_list.start_ply();
-        self.move_list.generate_quiets(board, &mut self.attack_info);
-        self.move_list.generate_noisy(board, &mut self.attack_info);
+        self.move_list.generate_quiets(position);
+        self.move_list.generate_noisy(position);
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            let mut clone = board.clone();
-            if clone.do_move(&board_move) {
+            if position.is_legal_move(&board_move) {
+                let mut clone = position.clone();
+                clone.do_move(&board_move);
                 println!("{} -> {}", board_move.to_string(), self.perft(&mut clone, depth - 1));
             }
         }
         self.move_list.end_ply();
     }
 
-    pub fn perft(&mut self, board: &mut Board, depth: u8) -> u64 {
+    pub fn perft(&mut self, position: &mut Position, depth: u8) -> u64 {
         if depth == 0 {
             return 1;
         }
         self.move_list.start_ply();
-        self.move_list.generate_quiets(board, &mut self.attack_info);
-        self.move_list.generate_noisy(board, &mut self.attack_info);
+        self.move_list.generate_quiets(position);
+        self.move_list.generate_noisy(position);
 
         let mut result = 0;
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            let mut clone = board.clone();
+            let mut clone = position.clone();
             if clone.do_move(&board_move) {
                 result += self.perft(&mut clone, depth - 1);
                 self.valid_moves += 1;
@@ -69,16 +67,16 @@ impl Perft {
 mod test {
     use std::fs::File;
     use std::io::{BufReader, BufRead};
-    use crate::cached::board::Board;
-    use crate::cached::perft::Perft;
     use crate::types::board_move::BoardMove;
     use crate::types::square::Square;
+    use crate::simplified::perft::Perft;
+    use crate::simplified::position::Position;
 
     fn check_perft_file(path: &str, depth_limit: u8) {
         let file = File::open(path).expect("failed to open test suite");
         let reader = BufReader::new(file);
 
-        let mut board = Board::default();
+        let mut position = Position::empty();
         let mut perft = Perft::new();
 
         for line in reader.lines().map(|l| l.unwrap()) {
@@ -86,9 +84,9 @@ mod test {
 
             match slices.next() {
                 Some("epd") => {
-                    let position = slices.next().expect("expected position");
-                    println!("position {}", position);
-                    board = Board::from_fen(position);
+                    let fen = slices.next().expect("expected position");
+                    println!("position {}", fen);
+                    position = Position::from_fen(fen);
                 }
                 Some("perft") => {
                     let mut params = slices.next().expect("expected perft params").splitn(2, ' ');
@@ -97,7 +95,7 @@ mod test {
                     let nodes: u64 = params.next().expect("expected perft nodes").parse().expect("expected integer value");
 
                     if depth <= depth_limit {
-                        assert_eq!(perft.perft(&mut board, depth), nodes);
+                        assert_eq!(perft.perft(&mut position, depth), nodes);
                     }
                 }
                 _ => {}
@@ -108,7 +106,7 @@ mod test {
     }
 
     #[test]
-    #[ignore]
+//    #[ignore]
     fn test_random() {
         check_perft_file("G:/chess/epds/random.perft", 5);
     }

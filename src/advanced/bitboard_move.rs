@@ -11,7 +11,7 @@ const NORTH: i8 = 8;
 impl Bitboard {
     #[inline]
     pub fn pawn_forward(&self, color: &Color) -> Bitboard {
-        if color.is_white() {
+        if color == &Color::White {
             self.shl(NORTH as u64)
         } else {
             self.shr(NORTH as u64)

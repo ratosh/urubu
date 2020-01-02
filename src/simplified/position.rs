@@ -256,7 +256,49 @@ impl Position {
     // Validate pseudo legal moves (Castle, Passant, Leave king under check)
     #[inline]
     pub fn is_legal_move(&self, board_move: &BoardMove) -> bool {
-        false
+        let move_type = board_move.move_type();
+        let our_color = self.color_to_move;
+        let their_color = our_color.reverse();
+        return match move_type {
+            MoveType::NORMAL => {
+                //Check if king is under attack after board changes
+                let piece_type = self.piece_type_board[&board_move.square_from()];
+                if piece_type == PieceType::KING {
+                    let our_bitboard = self.color_bitboard(&our_color).invert(&Bitboard::from(board_move.square_from()));
+                    let their_bitboard = self.color_bitboard(&their_color);
+                    board_move.square_to().attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+                } else {
+                    let our_bitboard = self.color_bitboard(&our_color)
+                        .invert(&Bitboard::from(board_move.square_from()))
+                        .union(&Bitboard::from(board_move.square_to()));
+                    let their_bitboard = self.color_bitboard(&their_color)
+                        .difference(&Bitboard::from(board_move.square_to()));
+                    self.king_square[&self.color_to_move].attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+                }
+            }
+            MoveType::PASSANT => {
+                //Check if king is under attack after board changes
+                let our_bitboard = self.color_bitboard(&our_color)
+                    .invert(&Bitboard::from(board_move.square_from()))
+                    .union(&Bitboard::from(board_move.square_to()));
+                let their_bitboard = self.color_bitboard(&their_color)
+                    .difference(&Bitboard::from(board_move.square_to().forward(&our_color)));
+                self.king_square[&self.color_to_move].attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+            }
+            MoveType::CASTLING => {
+                let path = board_move.square_from().between(&board_move.square_to());
+                !path.attacks_to(self, &self.color_to_move, &self.color_bitboard[&self.color_to_move], &self.color_bitboard[&self.color_to_move.reverse()])
+            }
+            // PROMOTIONS
+            _ => {
+                let our_bitboard = self.color_bitboard(&our_color)
+                    .invert(&Bitboard::from(board_move.square_from()))
+                    .union(&Bitboard::from(board_move.square_to()));
+                let their_bitboard = self.color_bitboard(&their_color)
+                    .difference(&Bitboard::from(board_move.square_to()));
+                self.king_square[&self.color_to_move].attacks_to(self, &our_color, &our_bitboard, &their_bitboard).is_empty()
+            }
+        };
     }
 
     #[inline]
@@ -337,7 +379,8 @@ impl Position {
 
     #[inline]
     fn set_checkbitboard(&mut self) {
-        self.state.check_bitboard = self.king_square[&self.color_to_move].attacks_to(self, &self.color_to_move.reverse());
+        self.state.check_bitboard = self.king_square[&self.color_to_move]
+            .attacks_to(self, &self.color_to_move, &self.color_bitboard[&self.color_to_move], &self.color_bitboard[&self.color_to_move.reverse()]);
     }
 
     #[inline]
@@ -361,8 +404,8 @@ impl Position {
     }
 
     #[inline]
-    pub fn game_bitboard(&self) -> &Bitboard {
-        &self.piece_bitboard[&PieceType::NONE]
+    pub fn game_bitboard(&self) -> Bitboard {
+        self.color_bitboard[&Color::White].union(&self.color_bitboard[&Color::Black])
     }
 
     #[inline]
@@ -374,21 +417,39 @@ impl Position {
     pub fn king_square(&self, color: &Color) -> &Square {
         &self.king_square[color]
     }
+
+    #[inline]
+    pub fn rook_from(&self, castling_index: &CastlingIndex) -> &Square {
+        &self.initial_rook_square[castling_index.to_usize()]
+    }
+}
+
+impl Bitboard {
+
+    #[inline]
+    pub fn attacks_to(&self, position: &Position, defending_color: &Color, our_bitboard: &Bitboard, their_bitboard: &Bitboard) -> bool {
+        for square in self.iterator() {
+            if square.attacks_to(position, defending_color, our_bitboard, their_bitboard).is_not_empty() {
+                return true;
+            }
+        }
+        return false;
+    }
 }
 
 impl Square {
 
     #[inline]
-    pub fn attacks_to(&self, position: &Position, attacking_color: &Color) -> Bitboard {
-        self.pawn_attacks(attacking_color).intersect(&position.piece_bitboard[&PieceType::PAWN])
+    pub fn attacks_to(&self, position: &Position, defending_color: &Color, our_bitboard: &Bitboard, their_bitboard: &Bitboard) -> Bitboard {
+        let bitboard = &our_bitboard.union(their_bitboard);
+        self.pawn_attacks(defending_color).intersect(&position.piece_bitboard[&PieceType::PAWN])
             .union(&self.knight_moves().intersect(&position.piece_bitboard[&PieceType::KNIGHT]))
-            .union(&self.bishop_moves(&position.game_bitboard()).intersect(&position.bishop_like_pieces()))
-            .union(&self.rook_moves(&position.game_bitboard()).intersect(&position.rook_like_pieces()))
+            .union(&self.bishop_moves(bitboard).intersect(&position.bishop_like_pieces()))
+            .union(&self.rook_moves(bitboard).intersect(&position.rook_like_pieces()))
             .union(&self.king_moves().intersect(&position.piece_bitboard[&PieceType::KING]))
-            .intersect(&position.color_bitboard[attacking_color])
+            .intersect(their_bitboard)
     }
 }
-
 
 
 #[cfg(test)]
@@ -402,7 +463,7 @@ mod test {
     #[test]
     fn default_board() {
         let position = Position::from_fen(Position::DEFAULT_FEN);
-        assert_eq!(position.color_to_move.is_white(), true);
+        assert_eq!(position.color_to_move, Color::White);
 
         assert_eq!(position.color_at(&Square::A1).unwrap(), Color::White);
         assert_eq!(position.color_at(&Square::A2).unwrap(), Color::White);
