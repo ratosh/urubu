@@ -51,9 +51,10 @@ impl PieceType {
     pub fn from_char(c: char) -> (Color, PieceType) {
         let lower_c = c.to_lowercase().nth(0).unwrap();
         if let Some(index) = PieceType::REPRESENTATION.iter().position(|&s| s == lower_c) {
-            return (PieceType::get_color(c), PieceType(index as u8));
+            (PieceType::get_color(c), PieceType(index as u8))
+        } else {
+            (Color::White, PieceType::NONE)
         }
-        return (Color::White, PieceType::NONE);
     }
 
     #[inline]

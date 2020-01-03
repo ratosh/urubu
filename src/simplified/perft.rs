@@ -8,14 +8,6 @@ pub struct Perft {
 }
 
 impl Perft {
-    pub fn new() -> Self {
-        Self {
-            move_list: MoveList::new(),
-            invalid_moves: 0,
-            valid_moves: 0,
-        }
-    }
-
     pub fn divide(&mut self, position: &mut Position, depth: u8) {
         if depth == 0 {
             return;
@@ -26,9 +18,9 @@ impl Perft {
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            if position.is_legal_move(&board_move) {
+            if position.is_legal_move(board_move) {
                 let mut clone = position.clone();
-                clone.do_move(&board_move);
+                clone.do_move(board_move);
                 println!(
                     "{} -> {}",
                     board_move.to_string(),
@@ -53,9 +45,9 @@ impl Perft {
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            if position.is_legal_move(&board_move) {
+            if position.is_legal_move(board_move) {
                 let mut clone = position.clone();
-                clone.do_move(&board_move);
+                clone.do_move(board_move);
                 result += self.perft(&mut clone, depth - 1);
                 self.valid_moves += 1;
             } else {
@@ -65,6 +57,16 @@ impl Perft {
         self.move_list.end_ply();
 
         result
+    }
+}
+
+impl Default for Perft {
+    fn default() -> Self {
+        Self {
+            move_list: MoveList::default(),
+            invalid_moves: 0,
+            valid_moves: 0,
+        }
     }
 }
 
@@ -83,7 +85,7 @@ mod test {
         let reader = BufReader::new(file);
 
         let mut position = Position::empty();
-        let mut perft = Perft::new();
+        let mut perft = Perft::default();
 
         for line in reader.lines().map(|l| l.unwrap()) {
             let mut slices = line.trim().splitn(2, ' ');
@@ -128,7 +130,7 @@ mod test {
     #[test]
     fn test_perft() {
         let position = Position::default();
-        let mut perft = Perft::new();
+        let mut perft = Perft::default();
         let result = perft.perft(&mut position.clone(), 6);
         println!("Perft is {}", result);
     }
@@ -136,7 +138,7 @@ mod test {
     #[test]
     fn test_divide() {
         let position = Position::default();
-        let mut perft = Perft::new();
+        let mut perft = Perft::default();
         perft.divide(&mut position.clone(), 6);
     }
 
@@ -144,14 +146,14 @@ mod test {
     fn test_divide1() {
         let mut position =
             Position::from_fen("2bqk1nr/p5bp/n2p1P2/p1pPp3/P5p1/RrP5/1P1NPP1P/2B1KBNR w Kk -");
-        position.do_move(&BoardMove::build_normal(Square::F6, Square::G7));
-        position.do_move(&BoardMove::build_normal(Square::G8, Square::F6));
-        position.do_move(&BoardMove::build_move(
+        position.do_move(BoardMove::build_normal(Square::F6, Square::G7));
+        position.do_move(BoardMove::build_normal(Square::G8, Square::F6));
+        position.do_move(BoardMove::build_move(
             Square::G7,
             Square::H8,
-            &MoveType::PROMOTION_BISHOP,
+            MoveType::PROMOTION_BISHOP,
         ));
-        let mut perft = Perft::new();
+        let mut perft = Perft::default();
         perft.divide(&mut position, 1);
     }
 }

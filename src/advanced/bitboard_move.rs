@@ -10,7 +10,7 @@ const NORTH: i8 = 8;
 
 impl Bitboard {
     #[inline]
-    pub fn pawn_forward(&self, color: Color) -> Bitboard {
+    pub fn pawn_forward(self, color: Color) -> Bitboard {
         if color == Color::White {
             self.shl(NORTH as u64)
         } else {
@@ -19,18 +19,18 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn shl(&self, offset: u64) -> Bitboard {
+    pub fn shl(self, offset: u64) -> Bitboard {
         Bitboard(self.0.shl(offset))
     }
 
     #[inline]
-    pub fn shr(&self, offset: u64) -> Bitboard {
+    pub fn shr(self, offset: u64) -> Bitboard {
         Bitboard(self.0.shr(offset))
     }
 
     #[inline]
-    pub fn pawn_attacks(&self, color: Color) -> Bitboard {
-        return match color {
+    pub fn pawn_attacks(self, color: Color) -> Bitboard {
+        match color {
             Color::White => self
                 .difference(Bitboard::FILE_A)
                 .shl(7)
@@ -39,81 +39,85 @@ impl Bitboard {
                 .difference(Bitboard::FILE_A)
                 .shr(9)
                 .union(self.difference(Bitboard::FILE_H).shr(7)),
-        };
+        }
     }
 }
 
 impl Square {
     #[inline]
-    pub fn pawn_attacks(&self, color: Color) -> Bitboard {
+    pub fn pawn_attacks(self, color: Color) -> Bitboard {
         PAWN_ATTACKS[color.to_usize()][self.to_usize()]
     }
 
     #[inline]
-    pub fn pawn_move(&self, color: Color) -> Bitboard {
+    pub fn pawn_move(self, color: Color) -> Bitboard {
         PAWN_MOVES[color.to_usize()][self.to_usize()]
     }
 
     #[inline]
-    pub fn pawn_double_move(&self, color: Color) -> Bitboard {
+    pub fn pawn_double_move(self, color: Color) -> Bitboard {
         PAWN_DOUBLE_MOVES[color.to_usize()][self.to_usize()]
     }
 
     #[inline]
-    pub fn between(&self, other: Square) -> Bitboard {
+    pub fn between(self, other: Square) -> Bitboard {
         BETWEEN[self.to_usize()][other.to_usize()]
     }
 
     #[inline]
-    pub fn neighbour(&self) -> Bitboard {
+    pub fn neighbour(self) -> Bitboard {
         NEIGHBOUR[self.to_usize()]
     }
 
     #[inline]
-    pub fn pinned_mask(&self, other: Square) -> Bitboard {
+    pub fn pinned_mask(self, other: Square) -> Bitboard {
         PINNED_MASK[self.to_usize()][other.to_usize()]
     }
 
     #[inline]
-    pub fn knight_moves(&self) -> Bitboard {
+    pub fn knight_moves(self) -> Bitboard {
         KNIGHT_MOVES[self.to_usize()]
     }
 
     #[inline]
-    pub fn king_moves(&self) -> Bitboard {
+    pub fn king_moves(self) -> Bitboard {
         KING_MOVES[self.to_usize()]
     }
 
     #[inline]
-    pub fn pseudo_bishop_moves(&self) -> Bitboard {
-        unsafe { *PSEUDO_BISHOP.get_unchecked(self.to_usize()) }
+    pub fn pseudo_bishop_moves(self) -> Bitboard {
+        unsafe {
+            *PSEUDO_BISHOP.get_unchecked(self.to_usize())
+        }
     }
 
     #[inline]
-    pub fn bishop_moves(&self, occupied: Bitboard) -> Bitboard {
+    pub fn bishop_moves(self, occupied: Bitboard) -> Bitboard {
         let magic = &Magic::BISHOP[self.to_usize()];
         let index = ((magic.factor.wrapping_mul(occupied.0 & magic.mask)) as u64
             >> (Square::NUM_SQUARES - Magic::BISHOP_SHIFT) as u64)
             + magic.offset;
 
         unsafe {
-            return *ATTACKS.get_unchecked(index as usize);
+            *ATTACKS.get_unchecked(index as usize)
         }
     }
 
     #[inline]
-    pub fn pseudo_rook_moves(&self) -> Bitboard {
-        unsafe { *PSEUDO_ROOK.get_unchecked(self.to_usize()) }
+    pub fn pseudo_rook_moves(self) -> Bitboard {
+        unsafe {
+            *PSEUDO_ROOK.get_unchecked(self.to_usize())
+        }
     }
 
     #[inline]
-    pub fn rook_moves(&self, occupied: Bitboard) -> Bitboard {
+    pub fn rook_moves(self, occupied: Bitboard) -> Bitboard {
         let magic = &Magic::ROOK[self.to_usize()];
         let index = ((magic.factor.wrapping_mul(occupied.0 & magic.mask)) as u64
             >> (Square::NUM_SQUARES - Magic::ROOK_SHIFT) as u64)
             + magic.offset;
         unsafe {
-            return *ATTACKS.get_unchecked(index as usize);
+            *ATTACKS.get_unchecked(index as usize)
         }
     }
 }

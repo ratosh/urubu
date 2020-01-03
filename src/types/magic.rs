@@ -15,53 +15,53 @@ impl Magic {
 
     pub const ROOK: [Magic; Square::NUM_SQUARES] = [
         Magic {
-            mask: 0x000101010101017e,
-            factor: 0x00280077ffebfffe,
+            mask: 0x0001_0101_0101_017e,
+            factor: 0x0028_0077_ffeb_fffe,
             offset: 26304,
         },
         Magic {
-            mask: 0x000202020202027c,
-            factor: 0x2004010201097fff,
+            mask: 0x0002_0202_0202_027c,
+            factor: 0x2004_0102_0109_7fff,
             offset: 35520,
         },
         Magic {
-            mask: 0x000404040404047a,
-            factor: 0x0010020010053fff,
+            mask: 0x0004_0404_0404_047a,
+            factor: 0x0010_0200_1005_3fff,
             offset: 38592,
         },
         Magic {
-            mask: 0x0008080808080876,
-            factor: 0x0040040008004002,
+            mask: 0x0008_0808_0808_0876,
+            factor: 0x0040_0400_0800_4002,
             offset: 8026,
         },
         Magic {
-            mask: 0x001010101010106e,
-            factor: 0x7fd00441ffffd003,
+            mask: 0x0010_1010_1010_106e,
+            factor: 0x7fd0_0441_ffff_d003,
             offset: 22196,
         },
         Magic {
-            mask: 0x002020202020205e,
-            factor: 0x4020008887dffffe,
+            mask: 0x0020_2020_2020_205e,
+            factor: 0x4020_0088_87df_fffe,
             offset: 80870,
         },
         Magic {
-            mask: 0x004040404040403e,
-            factor: 0x004000888847ffff,
+            mask: 0x0040_4040_4040_403e,
+            factor: 0x0040_0088_8847_ffff,
             offset: 76747,
         },
         Magic {
-            mask: 0x008080808080807e,
-            factor: 0x006800fbff75fffd,
+            mask: 0x0080_8080_8080_807e,
+            factor: 0x0068_00fb_ff75_fffd,
             offset: 30400,
         },
         Magic {
-            mask: 0x0001010101017e00,
-            factor: 0x000028010113ffff,
+            mask: 0x0001_0101_0101_7e00,
+            factor: 0x0000_2801_0113_ffff,
             offset: 11115,
         },
         Magic {
-            mask: 0x0002020202027c00,
-            factor: 0x0020040201fcffff,
+            mask: 0x0002_0202_0202_7c00,
+            factor: 0x0020_0402_01fc_ffff,
             offset: 18205,
         },
         Magic {

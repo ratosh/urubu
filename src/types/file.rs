@@ -1,5 +1,3 @@
-use std::convert::From;
-
 #[derive(PartialOrd, PartialEq, Eq, Copy, Clone, Debug)]
 pub struct File(pub i8);
 
@@ -30,7 +28,7 @@ impl File {
 
     #[inline]
     pub fn to_usize(self) -> usize {
-        return self.0 as usize;
+        self.0 as usize
     }
 
     #[inline]
@@ -41,9 +39,10 @@ impl File {
     #[inline]
     pub fn from_char(input: char) -> Option<File> {
         if input >= 'a' && input <= 'h' {
-            Some(File(u8::from(input as u8 - b'a') as i8));
+            Some(File((input as u8 - b'a') as i8))
+        } else {
+            None
         }
-        None
     }
 
     #[inline]

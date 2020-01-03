@@ -78,20 +78,12 @@ impl MoveList {
     }
 
     #[inline]
-    fn generate_knight_moves(
-        &mut self,
-        position: &Position,
-        color_our: Color,
-        mask: Bitboard,
-    ) {
+    fn generate_knight_moves(&mut self, position: &Position, color_our: Color, mask: Bitboard) {
         for square in position
             .piece_bitboard(color_our, PieceType::KNIGHT)
             .iterator()
         {
-            self.register_moves_from_square(
-                square,
-                mask.intersect(square.knight_moves()),
-            );
+            self.register_moves_from_square(square, mask.intersect(square.knight_moves()));
         }
     }
 
@@ -285,22 +277,22 @@ impl MoveList {
         self.add_move(BoardMove::build_move(
             square_from,
             square_to,
-            &MoveType::PROMOTION_QUEEN,
+            MoveType::PROMOTION_QUEEN,
         ));
         self.add_move(BoardMove::build_move(
             square_from,
             square_to,
-            &MoveType::PROMOTION_ROOK,
+            MoveType::PROMOTION_ROOK,
         ));
         self.add_move(BoardMove::build_move(
             square_from,
             square_to,
-            &MoveType::PROMOTION_BISHOP,
+            MoveType::PROMOTION_BISHOP,
         ));
         self.add_move(BoardMove::build_move(
             square_from,
             square_to,
-            &MoveType::PROMOTION_KNIGHT,
+            MoveType::PROMOTION_KNIGHT,
         ));
     }
 }
@@ -312,13 +304,13 @@ mod test {
 
     fn count_moves(fen: &str) -> u32 {
         let position = Position::from_fen(fen);
-        let mut move_list = MoveList::new();
+        let mut move_list = MoveList::default();
         move_list.generate_quiets(&position);
         move_list.generate_noisy(&position);
         let mut legal_moves = 0;
         while move_list.has_next() {
             let board_move = move_list.next();
-            if position.is_legal_move(&board_move) {
+            if position.is_legal_move(board_move) {
                 println!("move {}", board_move.to_string());
                 legal_moves += 1;
             } else {

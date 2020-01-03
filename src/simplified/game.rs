@@ -26,7 +26,7 @@ impl Game {
         }
     }
 
-    pub fn make_move(&mut self, board_move: &BoardMove) -> bool {
+    pub fn make_move(&mut self, board_move: BoardMove) -> bool {
         println!("{}", board_move.to_string());
         true
     }

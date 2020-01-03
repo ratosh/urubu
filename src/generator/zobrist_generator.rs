@@ -14,7 +14,7 @@ pub fn generate_zobrist_file() -> io::Result<()> {
     let magic_path = Path::new(&out_dir).join("zobrist_generated.rs");
     let mut file = std::fs::File::create(&magic_path).expect("Created file");
 
-    let mut random = Random::new();
+    let mut random = Random::default();
 
     write_3d_u64_array(&mut file, "PSQT", &init_zobrist_psqt(&mut random))?;
     write_u64_array(&mut file, "EP", &init_zobrist_ep(&mut random))?;

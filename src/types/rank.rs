@@ -29,7 +29,7 @@ impl Rank {
 
     #[inline]
     pub fn to_usize(self) -> usize {
-        return self.0 as usize;
+        self.0 as usize
     }
 
     #[inline]
@@ -54,11 +54,11 @@ impl Rank {
 
     #[inline]
     pub fn from_char(input: char) -> Option<Rank> {
-        return if input >= '1' && input <= '8' {
-            Some(Rank(u8::from(input as u8 - b'1') as i8))
+        if input >= '1' && input <= '8' {
+            Some(Rank((input as u8 - b'1') as i8))
         } else {
             None
-        };
+        }
     }
 }
 

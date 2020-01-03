@@ -21,18 +21,6 @@ pub struct PositionState {
 
 impl PositionState {
     #[inline]
-    pub fn new() -> Self {
-        Self {
-            zkey: ZobristKey::new(),
-            zkey_pawn: ZobristKey::new(),
-            rule_50: 0,
-            castling_rights: CastlingRights::NO_CASTLING,
-            ep_square: None,
-            check_bitboard: Bitboard::EMPTY,
-        }
-    }
-
-    #[inline]
     pub fn change_piece(&mut self, color: Color, piece_type: PieceType, square: Square) {
         // Updating zobrist info
         self.zkey.change_piece(color, piece_type, square);
@@ -70,5 +58,18 @@ impl PositionState {
     pub fn set_ep(&mut self, square: Square) {
         self.ep_square = Some(square);
         self.zkey.set_ep(square);
+    }
+}
+
+impl Default for PositionState {
+    fn default() -> Self {
+        Self {
+            zkey: ZobristKey::default(),
+            zkey_pawn: ZobristKey::default(),
+            rule_50: 0,
+            castling_rights: CastlingRights::NO_CASTLING,
+            ep_square: None,
+            check_bitboard: Bitboard::EMPTY,
+        }
     }
 }

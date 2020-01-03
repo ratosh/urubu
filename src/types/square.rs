@@ -159,22 +159,22 @@ impl Square {
 
     #[inline]
     pub fn to_usize(self) -> usize {
-        return self.0 as usize;
+        self.0 as usize
     }
 
     #[inline]
     pub fn to_u8(self) -> u8 {
-        return self.0 as u8;
+        self.0 as u8
     }
 
     #[inline]
     pub fn to_u16(self) -> u16 {
-        return self.0 as u16;
+        self.0 as u16
     }
 
     #[inline]
     pub fn to_u64(self) -> u64 {
-        return self.0 as u64;
+        self.0 as u64
     }
 
     #[inline]
@@ -217,7 +217,7 @@ impl Square {
         if let Some(index) = Square::REPRESENTATION.iter().position(|&s| s == st) {
             return Some(Square(index as i8));
         }
-        return None;
+        None
     }
 
     pub fn forward(self, color: Color) -> Self {

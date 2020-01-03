@@ -60,7 +60,7 @@ impl Position {
 
             king_square: [Square::E1, Square::E8],
 
-            state: PositionState::new(),
+            state: PositionState::default(),
         }
     }
 
@@ -99,17 +99,14 @@ impl Position {
 
         let ep_square = Square::from_string(tokens.next().unwrap());
 
-        let rule50 = tokens.next();
-        if rule50.is_some() {
-            result.state.rule_50 = rule50.unwrap().parse().unwrap();
+        if let Some(rule50) = tokens.next() {
+            result.state.rule_50 = rule50.parse().unwrap();
         }
 
-        let move_number = tokens.next();
-        if move_number.is_some() {
+        if let Some(move_number) = tokens.next() {
             result.move_number = max(
                 Color::NUM_COLORS as u16
                     * (move_number
-                        .unwrap()
                         .parse::<u16>()
                         .unwrap()
                         .wrapping_sub(Color::Black.to_u16())),
@@ -276,7 +273,7 @@ impl Position {
 
     // Validate pseudo legal moves (Castle, Passant, Leave king under check)
     #[inline]
-    pub fn is_legal_move(&self, board_move: &BoardMove) -> bool {
+    pub fn is_legal_move(&self, board_move: BoardMove) -> bool {
         let move_type = board_move.move_type();
         let color_our = self.color_to_move;
         let color_their = color_our.reverse();
@@ -348,7 +345,7 @@ impl Position {
     }
 
     #[inline]
-    pub fn do_move(&mut self, board_move: &BoardMove) -> bool {
+    pub fn do_move(&mut self, board_move: BoardMove) -> bool {
         self.state.rule_50 += 1;
 
         let square_from = board_move.square_from();
@@ -478,7 +475,7 @@ impl Position {
 impl Bitboard {
     #[inline]
     pub fn attacks_to(
-        &self,
+        self,
         position: &Position,
         defending_color: Color,
         our_bitboard: Bitboard,
@@ -499,7 +496,7 @@ impl Bitboard {
 impl Square {
     #[inline]
     pub fn attacks_to(
-        &self,
+        self,
         position: &Position,
         defending_color: Color,
         our_bitboard: Bitboard,

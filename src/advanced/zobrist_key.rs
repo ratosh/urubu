@@ -10,13 +10,8 @@ pub struct ZobristKey(pub u64);
 
 impl ZobristKey {
     #[inline]
-    pub fn to_u64(&self) -> u64 {
+    pub fn to_u64(self) -> u64 {
         self.0 as u64
-    }
-
-    #[inline]
-    pub fn new() -> Self {
-        ZobristKey(0)
     }
 
     #[inline]
@@ -46,13 +41,19 @@ impl ZobristKey {
     }
 }
 
+impl Default for ZobristKey {
+    fn default() -> Self {
+        ZobristKey(0)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
 
     #[test]
     fn move_piece() {
-        let mut key = ZobristKey::new();
+        let mut key = ZobristKey::default();
         let init_key = key.to_u64();
         key.move_piece(Color::White, PieceType::PAWN, Square::A1, Square::A2);
         let k1 = key.to_u64();
@@ -64,7 +65,7 @@ mod test {
 
     #[test]
     fn change_piece() {
-        let mut key = ZobristKey::new();
+        let mut key = ZobristKey::default();
         let init_key = key.to_u64();
         key.change_piece(Color::White, PieceType::PAWN, Square::A1);
         let k1 = key.to_u64();
@@ -76,7 +77,7 @@ mod test {
 
     #[test]
     fn set_ep() {
-        let mut key = ZobristKey::new();
+        let mut key = ZobristKey::default();
         let init_key = key.to_u64();
         key.set_ep(Square::A2);
         let k1 = key.to_u64();
@@ -88,7 +89,7 @@ mod test {
 
     #[test]
     fn set_castling_rights() {
-        let mut key = ZobristKey::new();
+        let mut key = ZobristKey::default();
         let init_key = key.to_u64();
         key.set_castling_rights(CastlingRights::NO_CASTLING);
         let k1 = key.to_u64();
@@ -103,7 +104,7 @@ mod test {
 
     #[test]
     fn update_color() {
-        let mut key = ZobristKey::new();
+        let mut key = ZobristKey::default();
         let init_key = key.to_u64();
         key.change_color();
         let k1 = key.to_u64();

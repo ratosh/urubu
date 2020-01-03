@@ -14,21 +14,21 @@ impl BoardMove {
 
     #[inline]
     pub fn build_normal(square_from: Square, square_to: Square) -> BoardMove {
-        BoardMove::build_move(square_from, square_to, &MoveType::NORMAL)
+        BoardMove::build_move(square_from, square_to, MoveType::NORMAL)
     }
 
     #[inline]
     pub fn build_passant(square_from: Square, square_to: Square) -> BoardMove {
-        BoardMove::build_move(square_from, square_to, &MoveType::PASSANT)
+        BoardMove::build_move(square_from, square_to, MoveType::PASSANT)
     }
 
     #[inline]
     pub fn build_castling(square_from: Square, square_to: Square) -> BoardMove {
-        BoardMove::build_move(square_from, square_to, &MoveType::CASTLING)
+        BoardMove::build_move(square_from, square_to, MoveType::CASTLING)
     }
 
     #[inline]
-    pub fn build_move(square_from: Square, square_to: Square, move_type: &MoveType) -> BoardMove {
+    pub fn build_move(square_from: Square, square_to: Square, move_type: MoveType) -> BoardMove {
         BoardMove(
             (square_from.to_u16()
                 | square_to.to_u16() << BoardMove::TO_SHIFT
@@ -37,22 +37,22 @@ impl BoardMove {
     }
 
     #[inline]
-    pub fn square_from(&self) -> Square {
+    pub fn square_from(self) -> Square {
         Square((self.0 & Square::H8.0 as u16) as i8)
     }
 
     #[inline]
-    pub fn square_to(&self) -> Square {
+    pub fn square_to(self) -> Square {
         Square((self.0 >> BoardMove::TO_SHIFT & Square::H8.0 as u16) as i8)
     }
 
     #[inline]
-    pub fn move_type(&self) -> MoveType {
+    pub fn move_type(self) -> MoveType {
         MoveType((self.0 >> BoardMove::MOVE_TYPE_SHIFT) as u8)
     }
 
     #[inline]
-    pub fn to_string(&self) -> String {
+    pub fn to_string(self) -> String {
         let mut result = String::with_capacity(5);
         result.push_str(&self.square_from().to_string());
         result.push_str(&self.square_to().to_string());
@@ -83,7 +83,7 @@ mod testing {
             "c3d4"
         );
         assert_eq!(
-            BoardMove::build_move(Square::H7, Square::H8, &MoveType::PROMOTION_QUEEN).to_string(),
+            BoardMove::build_move(Square::H7, Square::H8, MoveType::PROMOTION_QUEEN).to_string(),
             "h7h8q"
         );
     }

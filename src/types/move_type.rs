@@ -15,22 +15,22 @@ impl MoveType {
     pub const PROMOTION_QUEEN: MoveType = MoveType(7);
 
     #[inline]
-    pub fn to_usize(&self) -> usize {
+    pub fn to_usize(self) -> usize {
         self.0 as usize
     }
 
     #[inline]
-    pub fn to_u16(&self) -> u16 {
+    pub fn to_u16(self) -> u16 {
         self.0 as u16
     }
 
     #[inline]
-    pub fn is_promotion(&self) -> bool {
+    pub fn is_promotion(self) -> bool {
         self.0 & MoveType::PROMOTION_KNIGHT.0 != 0
     }
 
     #[inline]
-    pub fn promoted_piece_type(&self) -> PieceType {
+    pub fn promoted_piece_type(self) -> PieceType {
         if self.is_promotion() {
             PieceType(self.0 - 2)
         } else {
@@ -39,17 +39,17 @@ impl MoveType {
     }
 
     #[inline]
-    pub fn is_castling(&self) -> bool {
+    pub fn is_castling(self) -> bool {
         self.0 == MoveType::CASTLING.0
     }
 
     #[inline]
-    pub fn is_passant(&self) -> bool {
+    pub fn is_passant(self) -> bool {
         self.0 == MoveType::PASSANT.0
     }
 
     #[inline]
-    pub fn to_string(&self) -> char {
+    pub fn to_string(self) -> char {
         self.promoted_piece_type().to_char()
     }
 }

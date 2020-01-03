@@ -121,7 +121,7 @@ impl CastlingRights {
     #[inline]
     pub fn to_string(self) -> String {
         if self.0 == CastlingRights::NO_CASTLING.0 {
-            return "-".to_string();
+            "-".to_string()
         } else {
             let mut alg = String::with_capacity(CastlingIndex::NUM_INDEXES);
             for entry in self.iterator() {
