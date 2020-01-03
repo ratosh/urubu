@@ -1,7 +1,5 @@
-use std::cmp;
 use std::cmp::max;
 
-use crate::advanced::zobrist_key::ZobristKey;
 use crate::simplified::position_state::PositionState;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
@@ -41,7 +39,7 @@ impl Position {
 
     #[inline]
     pub fn empty() -> Self {
-        let mut result = Self {
+        Self {
             initial_rook_square: [Square::H1, Square::A1, Square::H8, Square::A8],
             castling_rights_masks: [CastlingRights::NO_CASTLING; Square::NUM_SQUARES],
 
@@ -66,8 +64,7 @@ impl Position {
             king_square: [Square::E1, Square::E8],
 
             state: PositionState::new(),
-        };
-        return result;
+        }
     }
 
     pub fn default() -> Self {
@@ -460,7 +457,6 @@ impl Square {
 
 #[cfg(test)]
 mod test {
-    use crate::types::bitboard::Bitboard;
     use crate::types::color::Color;
     use crate::types::piece_type::PieceType;
 

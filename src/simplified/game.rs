@@ -1,8 +1,6 @@
 use crate::types::square::Square;
-use crate::types::castling_rights::{CastlingIndex, CastlingRights};
 use crate::simplified::position::Position;
 use crate::advanced::zobrist_key::ZobristKey;
-use crate::types::color::Color;
 use crate::types::board_move::BoardMove;
 use crate::types::piece_type::PieceType;
 

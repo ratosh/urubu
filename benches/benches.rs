@@ -25,7 +25,7 @@ fn square_forward(c: &mut Criterion) {
 
 fn perft(c: &mut Criterion) {
 
-    let mut position = Position::default();
+    let position = Position::default();
     let mut perft = Perft::new();
     c.bench_function("perft", |b| {
         b.iter(|| perft.perft(&mut position.clone(), 3));

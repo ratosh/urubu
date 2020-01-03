@@ -146,7 +146,7 @@ impl MoveList {
 
         for square in pawn_bitboard.iterator() {
             let bitboard_from = Bitboard::from(square);
-            let mut bitboard_to = square.pawn_attacks(color_our).intersect(mask);
+            let bitboard_to = square.pawn_attacks(color_our).intersect(mask);
 
             self.register_moves_from_square(color_our, square, bitboard_to);
         }

@@ -1,6 +1,4 @@
 use std::time::Instant;
-use urubu::types::board_move::BoardMove;
-use urubu::types::square::Square;
 use urubu::simplified::perft::Perft;
 use urubu::simplified::position::Position;
 

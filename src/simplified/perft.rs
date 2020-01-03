@@ -112,7 +112,7 @@ mod test {
     #[test]
 //    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 5);
+        check_perft_file("G:/chess/epds/random.perft", 6);
     }
 
     #[test]
