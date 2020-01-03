@@ -120,8 +120,7 @@ impl Position {
         result.state.ep_square = ep_square;
 
         result.setup();
-
-        return result;
+        result
     }
 
     //    pub fn to_fen(&self) -> String {
