@@ -82,26 +82,35 @@ impl Square {
 
     #[inline]
     pub fn pseudo_bishop_moves(&self) -> Bitboard {
-        PSEUDO_BISHOP[self.to_usize()]
+        unsafe {
+            *PSEUDO_BISHOP.get_unchecked(self.to_usize())
+        }
     }
 
     #[inline]
     pub fn bishop_moves(&self, occupied: Bitboard) -> Bitboard {
         let magic = &Magic::BISHOP[self.to_usize()];
         let index = ((magic.factor.wrapping_mul(occupied.0 & magic.mask)) as u64 >> (Square::NUM_SQUARES - Magic::BISHOP_SHIFT) as u64) + magic.offset;
-        return ATTACKS[index as usize];
+
+        unsafe {
+            return *ATTACKS.get_unchecked(index as usize);
+        }
     }
 
     #[inline]
     pub fn pseudo_rook_moves(&self) -> Bitboard {
-        PSEUDO_ROOK[self.to_usize()]
+        unsafe {
+            *PSEUDO_ROOK.get_unchecked(self.to_usize())
+        }
     }
 
     #[inline]
     pub fn rook_moves(&self, occupied: Bitboard) -> Bitboard {
         let magic = &Magic::ROOK[self.to_usize()];
         let index = ((magic.factor.wrapping_mul(occupied.0 & magic.mask)) as u64 >> (Square::NUM_SQUARES - Magic::ROOK_SHIFT) as u64) + magic.offset;
-        return ATTACKS[index as usize];
+        unsafe {
+            return *ATTACKS.get_unchecked(index as usize);
+        }
     }
 }
 

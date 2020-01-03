@@ -8,7 +8,7 @@ fn main() {
     println!("Hello, world!");
     let mut position = Position::default();
     let timer = Instant::now();
-    let nodes = Perft::new().perft(&mut position, 7);
+    let nodes = Perft::new().perft(&mut position, 6);
     let duration = timer.elapsed();
     let dur = duration.as_millis() as u64;
     println!("perft result {}", nodes);

@@ -90,7 +90,7 @@ impl Position {
                 file += skip;
             } else {
                 let (color, piece_type) = PieceType::from_char(token);
-                result.add_piece(color, piece_type, Square::from_file_rank(&File::FILES[file], &Rank::RANKS[rank]));
+                result.add_piece(color, piece_type, Square::from_file_rank(File::FILES[file], Rank::RANKS[rank]));
                 file += 1;
             }
         }
@@ -277,7 +277,7 @@ impl Position {
                         .union(Bitboard::from(board_move.square_to()));
                     let their_bitboard = self.color_bitboard(color_their)
                         .difference(Bitboard::from(board_move.square_to()));
-                    self.king_square[self.color_to_move].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
+                    self.king_square[color_our].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
                 }
             }
             MoveType::PASSANT => {
@@ -287,7 +287,7 @@ impl Position {
                     .union(Bitboard::from(board_move.square_to()));
                 let their_bitboard = self.color_bitboard(color_their)
                     .difference(Bitboard::from(board_move.square_to().forward(color_their)));
-                self.king_square[self.color_to_move].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
+                self.king_square[color_our].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
             }
             MoveType::CASTLING => {
                 let path = board_move.square_from().between(board_move.square_to())

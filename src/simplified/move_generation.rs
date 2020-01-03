@@ -20,7 +20,7 @@ impl MoveList {
         let mask = position.get_mask(color_our).intersect(position.empty_bitboard());
         if mask.is_not_empty() {
             self.generate_quiet_pawn_moves(position, color_our, color_their, mask);
-            self.generate_moves(position, color_our, color_their, PieceType::KNIGHT, mask);
+            self.generate_knight_moves(position, color_our, color_their, mask);
             self.generate_moves(position, color_our, color_their, PieceType::BISHOP, mask);
             self.generate_moves(position, color_our, color_their, PieceType::ROOK, mask);
             self.generate_moves(position, color_our, color_their, PieceType::QUEEN, mask);
@@ -61,6 +61,12 @@ impl MoveList {
     }
 
     #[inline]
+    fn generate_knight_moves(&mut self, position: &Position, color_our: Color, color_their: Color, mask: Bitboard) {
+        for square in position.piece_bitboard(color_our, PieceType::KNIGHT).iterator() {
+            self.register_moves_from_square(color_our, square, mask.intersect(square.knight_moves()));
+        }
+    }
+
     fn generate_moves(&mut self, position: &Position, color_our: Color, color_their: Color, piece_type: PieceType, mask: Bitboard) {
         for square in position.piece_bitboard(color_our, piece_type).iterator() {
             let bitboard = match piece_type {
@@ -83,7 +89,7 @@ impl MoveList {
                     Bitboard::EMPTY
                 }
             };
-            self.register_moves_from_square(color_our, square, mask.intersect(bitboard))
+            self.register_moves_from_square(color_our, square, mask.intersect(bitboard));
         }
     }
 
@@ -106,7 +112,7 @@ impl MoveList {
             self.generate_quiet_promotions(position, color_our, color_their, mask);
             self.generate_pawn_capture(position, color_our, color_their, capture_mask);
             self.generate_ep_capture(position, color_our, color_their, mask);
-            self.generate_moves(position, color_our, color_their, PieceType::KNIGHT, capture_mask);
+            self.generate_knight_moves(position, color_our, color_their, capture_mask);
             self.generate_moves(position, color_our, color_their, PieceType::BISHOP, capture_mask);
             self.generate_moves(position, color_our, color_their, PieceType::ROOK, capture_mask);
             self.generate_moves(position, color_our, color_their, PieceType::QUEEN, capture_mask);
