@@ -6,8 +6,8 @@ use crate::types::square::Square;
 pub struct BoardMove(pub u16);
 
 impl BoardMove {
-    pub const NONE :BoardMove = BoardMove(0);
-    pub const NULL :BoardMove = BoardMove(0xFFFF);
+    pub const NONE: BoardMove = BoardMove(0);
+    pub const NULL: BoardMove = BoardMove(0xFFFF);
 
     pub const TO_SHIFT: u16 = 6;
     pub const MOVE_TYPE_SHIFT: u16 = 12;
@@ -29,9 +29,11 @@ impl BoardMove {
 
     #[inline]
     pub fn build_move(square_from: Square, square_to: Square, move_type: &MoveType) -> BoardMove {
-        BoardMove((square_from.to_u16() |
-            square_to.to_u16() << BoardMove::TO_SHIFT |
-            move_type.to_u16() << BoardMove::MOVE_TYPE_SHIFT) as u16)
+        BoardMove(
+            (square_from.to_u16()
+                | square_to.to_u16() << BoardMove::TO_SHIFT
+                | move_type.to_u16() << BoardMove::MOVE_TYPE_SHIFT) as u16,
+        )
     }
 
     #[inline]
@@ -58,7 +60,7 @@ impl BoardMove {
         if promoted_piece != PieceType::NONE {
             result.push(promoted_piece.to_char());
         }
-        return result;
+        result
     }
 }
 
@@ -68,9 +70,21 @@ mod testing {
 
     #[test]
     fn to_string() {
-        assert_eq!(BoardMove::build_normal(Square::A1, Square::A2).to_string(), "a1a2");
-        assert_eq!(BoardMove::build_normal(Square::B2, Square::B8).to_string(), "b2b8");
-        assert_eq!(BoardMove::build_normal(Square::C3, Square::D4).to_string(), "c3d4");
-        assert_eq!(BoardMove::build_move(Square::H7, Square::H8, &MoveType::PROMOTION_QUEEN).to_string(), "h7h8q");
+        assert_eq!(
+            BoardMove::build_normal(Square::A1, Square::A2).to_string(),
+            "a1a2"
+        );
+        assert_eq!(
+            BoardMove::build_normal(Square::B2, Square::B8).to_string(),
+            "b2b8"
+        );
+        assert_eq!(
+            BoardMove::build_normal(Square::C3, Square::D4).to_string(),
+            "c3d4"
+        );
+        assert_eq!(
+            BoardMove::build_move(Square::H7, Square::H8, &MoveType::PROMOTION_QUEEN).to_string(),
+            "h7h8q"
+        );
     }
 }

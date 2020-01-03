@@ -4,7 +4,6 @@ use crate::types::color::Color;
 pub struct Rank(pub i8);
 
 impl Rank {
-
     pub const NUM_RANKS: usize = 8;
 
     pub const RANK_1: Rank = Rank(0);
@@ -24,31 +23,32 @@ impl Rank {
         Rank::RANK_5,
         Rank::RANK_6,
         Rank::RANK_7,
-        Rank::RANK_8];
+        Rank::RANK_8,
+    ];
     pub const REPRESENTATION: [char; Rank::NUM_RANKS] = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
     #[inline]
-    pub fn to_usize(&self) -> usize {
+    pub fn to_usize(self) -> usize {
         return self.0 as usize;
     }
 
     #[inline]
-    pub fn to_char(&self) -> char {
+    pub fn to_char(self) -> char {
         Rank::REPRESENTATION[self.to_usize()]
     }
 
     #[inline]
-    pub fn reverse(&self) -> Rank {
+    pub fn reverse(self) -> Rank {
         Rank(self.0 ^ Rank::RANK_8.0)
     }
 
     #[inline]
-    pub fn relative(&self, color: Color) -> Rank {
+    pub fn relative(self, color: Color) -> Rank {
         Rank(self.0 ^ (Rank::RANK_8.0 * color.to_i8()))
     }
 
     #[inline]
-    pub fn distance(&self, other: Self) -> u8 {
+    pub fn distance(self, other: Self) -> u8 {
         (self.0 - other.0).abs() as u8
     }
 
@@ -91,4 +91,3 @@ mod test {
         assert_eq!(Rank::from_char('8').unwrap(), Rank::RANK_8);
     }
 }
-

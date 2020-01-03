@@ -1,8 +1,8 @@
-use crate::types::square::Square;
-use crate::simplified::position::Position;
 use crate::advanced::zobrist_key::ZobristKey;
+use crate::simplified::position::Position;
 use crate::types::board_move::BoardMove;
 use crate::types::piece_type::PieceType;
+use crate::types::square::Square;
 
 #[derive(Clone)]
 pub struct Game {
@@ -21,12 +21,13 @@ struct HistoryStackElement {
 impl Game {
     pub fn from_fen(fen: &str) -> Game {
         Game {
-            position : Position::from_fen(fen),
+            position: Position::from_fen(fen),
             stack: Vec::new(),
         }
     }
 
     pub fn make_move(&mut self, board_move: &BoardMove) -> bool {
+        println!("{}", board_move.to_string());
         true
     }
 }

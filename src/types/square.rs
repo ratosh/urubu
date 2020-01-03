@@ -1,8 +1,8 @@
 use crate::types::color::Color;
 use crate::types::file::File;
+use crate::types::piece_type::PieceType;
 use crate::types::rank::Rank;
 use std::ops;
-use crate::types::piece_type::PieceType;
 
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
 pub struct Square(pub i8);
@@ -11,10 +11,11 @@ impl Square {
     pub const NUM_SQUARES: usize = 64;
 
     const REPRESENTATION: [&'static str; Square::NUM_SQUARES] = [
-        "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
-        "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3", "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
-        "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
-        "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7", "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
+        "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1", "a2", "b2", "c2", "d2", "e2", "f2", "g2",
+        "h2", "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3", "a4", "b4", "c4", "d4", "e4", "f4",
+        "g4", "h4", "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5", "a6", "b6", "c6", "d6", "e6",
+        "f6", "g6", "h6", "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7", "a8", "b8", "c8", "d8",
+        "e8", "f8", "g8", "h8",
     ];
 
     pub const A1: Square = Square(0);
@@ -153,35 +154,36 @@ impl Square {
         Square::E8,
         Square::F8,
         Square::G8,
-        Square::H8];
+        Square::H8,
+    ];
 
     #[inline]
-    pub fn to_usize(&self) -> usize {
+    pub fn to_usize(self) -> usize {
         return self.0 as usize;
     }
 
     #[inline]
-    pub fn to_u8(&self) -> u8 {
+    pub fn to_u8(self) -> u8 {
         return self.0 as u8;
     }
 
     #[inline]
-    pub fn to_u16(&self) -> u16 {
+    pub fn to_u16(self) -> u16 {
         return self.0 as u16;
     }
 
     #[inline]
-    pub fn to_u64(&self) -> u64 {
+    pub fn to_u64(self) -> u64 {
         return self.0 as u64;
     }
 
     #[inline]
-    pub fn reverse(&self) -> Square {
+    pub fn reverse(self) -> Square {
         Square(self.0 ^ Square::A8.0)
     }
 
     #[inline]
-    pub fn relative(&self, color: Color) -> Square {
+    pub fn relative(self, color: Color) -> Square {
         Square(self.0 ^ (Square::A8.0 * color.to_i8()))
     }
 
@@ -196,17 +198,17 @@ impl Square {
     }
 
     #[inline]
-    pub fn to_rank(&self) -> Rank {
+    pub fn to_rank(self) -> Rank {
         Rank(self.0 >> 3)
     }
 
     #[inline]
-    pub fn to_file(&self) -> File {
+    pub fn to_file(self) -> File {
         File(self.0 & 7)
     }
 
     #[inline]
-    pub fn to_string(&self) -> String {
+    pub fn to_string(self) -> String {
         Square::REPRESENTATION[self.to_usize()].to_string()
     }
 
@@ -218,28 +220,28 @@ impl Square {
         return None;
     }
 
-    pub fn forward(&self, color: Color) -> Self {
+    pub fn forward(self, color: Color) -> Self {
         let result = self.0 + 8 * color.multiplier();
         Square(result)
     }
 
-    pub fn square_dist(&self, other: Self) -> u8 {
+    pub fn square_dist(self, other: Self) -> u8 {
         self.rank_dist(other).max(self.file_dist(other))
     }
 
-    pub fn rank_dist(&self, other: Self) -> u8 {
+    pub fn rank_dist(self, other: Self) -> u8 {
         self.to_rank().distance(other.to_rank())
     }
 
-    pub fn file_dist(&self, other: Self) -> u8 {
+    pub fn file_dist(self, other: Self) -> u8 {
         self.to_file().distance(other.to_file())
     }
 
-    pub fn is_valid(&self) -> bool {
+    pub fn is_valid(self) -> bool {
         self.0 >= 0 && self.0 <= Square::H8.0
     }
 
-    pub fn offset(&self, offset: i8) -> Option<Self> {
+    pub fn offset(self, offset: i8) -> Option<Self> {
         let final_square = Square(self.0 + offset);
         if final_square.is_valid() {
             Some(final_square)

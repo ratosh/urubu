@@ -47,10 +47,7 @@ impl Position {
             move_number: 0,
 
             piece_type_board: [PieceType::NONE; Square::NUM_SQUARES],
-            color_bitboard: [
-                Bitboard(0),
-                Bitboard(0),
-            ],
+            color_bitboard: [Bitboard(0), Bitboard(0)],
             piece_bitboard: [
                 Bitboard(0),
                 Bitboard(0),
@@ -87,7 +84,11 @@ impl Position {
                 file += skip;
             } else {
                 let (color, piece_type) = PieceType::from_char(token);
-                result.add_piece(color, piece_type, Square::from_file_rank(File::FILES[file], Rank::RANKS[rank]));
+                result.add_piece(
+                    color,
+                    piece_type,
+                    Square::from_file_rank(File::FILES[file], Rank::RANKS[rank]),
+                );
                 file += 1;
             }
         }
@@ -105,7 +106,16 @@ impl Position {
 
         let move_number = tokens.next();
         if move_number.is_some() {
-            result.move_number = max(Color::NUM_COLORS as u16 * (move_number.unwrap().parse::<u16>().unwrap().wrapping_sub(Color::Black.to_u16())), 0) as u16 + color_to_move.to_u16();
+            result.move_number = max(
+                Color::NUM_COLORS as u16
+                    * (move_number
+                        .unwrap()
+                        .parse::<u16>()
+                        .unwrap()
+                        .wrapping_sub(Color::Black.to_u16())),
+                0,
+            ) as u16
+                + color_to_move.to_u16();
         }
 
         result.color_to_move = color_to_move;
@@ -117,64 +127,74 @@ impl Position {
         return result;
     }
 
-//    pub fn to_fen(&self) -> String {
-//        let mut result = String::new();
-//
-//        let mut empty_squares: u32 = 0;
-//
-//        // Board piece representation
-//        for rank in Rank::RANKS.iter().rev() {
-//            for file in File::FILES.iter() {
-//                let square = Square::from_file_rank(file, rank);
-//                let bitboard = Bitboard::from_square(&square);
-//                let piece_type = self.piece_type(&square);
-//                if piece_type == PieceType::NONE {
-//                    empty_squares += 1;
-//                    continue;
-//                }
-//                if empty_squares > 0 {
-//                    result.push(std::char::from_digit(empty_squares, 10).unwrap());
-//                    empty_squares = 0
-//                }
-//
-//
-//                result.push(piece_type.to_char_colored(self.color_at(&square).unwrap()));
-//            }
-//            if empty_squares > 0 {
-//                result.push(std::char::from_digit(empty_squares, 10).unwrap());
-//                empty_squares = 0
-//            }
-//
-//            if rank.0 != Rank::RANK_1.0 {
-//                result.push(Position::SEPARATOR);
-//            }
-//        }
-//
-//        result.push(Position::EMPTY_SPACE);
-//        result.push(self.color_to_move.to_char());
-//        result.push(Position::EMPTY_SPACE);
-//        result.push_str(self.castling_rights.to_string().as_str());
-//        result.push(Position::EMPTY_SPACE);
-//        if let Some(ep_square) = self.ep_square {
-//            result.push_str(ep_square.to_string().as_str());
-//        } else {
-//            result.push_str("-");
-//        }
-//        result.push(Position::EMPTY_SPACE);
-//        result.push_str(self.rule_50.to_string().as_str());
-//        result.push(Position::EMPTY_SPACE);
-//        result.push_str(cmp::max(1, (self.move_number as i16 - self.color_to_move.to_i16()) / 2).to_string().as_str());
-//        return result;
-//    }
+    //    pub fn to_fen(&self) -> String {
+    //        let mut result = String::new();
+    //
+    //        let mut empty_squares: u32 = 0;
+    //
+    //        // Board piece representation
+    //        for rank in Rank::RANKS.iter().rev() {
+    //            for file in File::FILES.iter() {
+    //                let square = Square::from_file_rank(file, rank);
+    //                let bitboard = Bitboard::from_square(&square);
+    //                let piece_type = self.piece_type(&square);
+    //                if piece_type == PieceType::NONE {
+    //                    empty_squares += 1;
+    //                    continue;
+    //                }
+    //                if empty_squares > 0 {
+    //                    result.push(std::char::from_digit(empty_squares, 10).unwrap());
+    //                    empty_squares = 0
+    //                }
+    //
+    //
+    //                result.push(piece_type.to_char_colored(self.color_at(&square).unwrap()));
+    //            }
+    //            if empty_squares > 0 {
+    //                result.push(std::char::from_digit(empty_squares, 10).unwrap());
+    //                empty_squares = 0
+    //            }
+    //
+    //            if rank.0 != Rank::RANK_1.0 {
+    //                result.push(Position::SEPARATOR);
+    //            }
+    //        }
+    //
+    //        result.push(Position::EMPTY_SPACE);
+    //        result.push(self.color_to_move.to_char());
+    //        result.push(Position::EMPTY_SPACE);
+    //        result.push_str(self.castling_rights.to_string().as_str());
+    //        result.push(Position::EMPTY_SPACE);
+    //        if let Some(ep_square) = self.ep_square {
+    //            result.push_str(ep_square.to_string().as_str());
+    //        } else {
+    //            result.push_str("-");
+    //        }
+    //        result.push(Position::EMPTY_SPACE);
+    //        result.push_str(self.rule_50.to_string().as_str());
+    //        result.push(Position::EMPTY_SPACE);
+    //        result.push_str(cmp::max(1, (self.move_number as i16 - self.color_to_move.to_i16()) / 2).to_string().as_str());
+    //        return result;
+    //    }
 
     pub fn setup(&mut self) {
-        self.castling_rights_masks[self.king_square[Color::White.to_usize()].to_usize()] = CastlingRights::WHITE_RIGHTS;
-        self.castling_rights_masks[self.king_square[Color::Black.to_usize()].to_usize()] = CastlingRights::BLACK_RIGHTS;
+        self.castling_rights_masks[self.king_square[Color::White.to_usize()].to_usize()] =
+            CastlingRights::WHITE_RIGHTS;
+        self.castling_rights_masks[self.king_square[Color::Black.to_usize()].to_usize()] =
+            CastlingRights::BLACK_RIGHTS;
 
-        self.castling_rights_masks[self.initial_rook_square[CastlingIndex::WhiteA.to_usize()].to_usize()] = CastlingRights::WHITE_OOO;
-        self.castling_rights_masks[self.initial_rook_square[CastlingIndex::WhiteH.to_usize()].to_usize()] = CastlingRights::WHITE_OO;
-        self.castling_rights_masks[self.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] = CastlingRights::BLACK_OOO;
-        self.castling_rights_masks[self.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] = CastlingRights::BLACK_OO;
+        self.castling_rights_masks
+            [self.initial_rook_square[CastlingIndex::WhiteA.to_usize()].to_usize()] =
+            CastlingRights::WHITE_OOO;
+        self.castling_rights_masks
+            [self.initial_rook_square[CastlingIndex::WhiteH.to_usize()].to_usize()] =
+            CastlingRights::WHITE_OO;
+        self.castling_rights_masks
+            [self.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] =
+            CastlingRights::BLACK_OOO;
+        self.castling_rights_masks
+            [self.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] =
+            CastlingRights::BLACK_OO;
     }
 
     #[inline]
@@ -222,13 +242,13 @@ impl Position {
 
     #[inline]
     pub fn color_at(&self, square: Square) -> Option<Color> {
-        return if self.color_bitboard[Color::White] == Bitboard::from(square) {
+        if self.color_bitboard[Color::White] == Bitboard::from(square) {
             Some(Color::White)
         } else if self.color_bitboard[Color::Black] == Bitboard::from(square) {
             Some(Color::Black)
         } else {
             None
-        };
+        }
     }
 
     #[inline]
@@ -260,47 +280,71 @@ impl Position {
         let move_type = board_move.move_type();
         let color_our = self.color_to_move;
         let color_their = color_our.reverse();
-        return match move_type {
+        match move_type {
             MoveType::NORMAL => {
                 //Check if king is under attack after board changes
                 let piece_type = self.piece_type_board[board_move.square_from()];
                 if piece_type == PieceType::KING {
-                    let our_bitboard = self.color_bitboard(color_our).invert(Bitboard::from(board_move.square_from()));
+                    let our_bitboard = self
+                        .color_bitboard(color_our)
+                        .invert(Bitboard::from(board_move.square_from()));
                     let their_bitboard = self.color_bitboard(color_their);
-                    board_move.square_to().attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
+                    board_move
+                        .square_to()
+                        .attacks_to(self, color_our, our_bitboard, their_bitboard)
+                        .is_empty()
                 } else {
-                    let our_bitboard = self.color_bitboard(color_our)
+                    let our_bitboard = self
+                        .color_bitboard(color_our)
                         .invert(Bitboard::from(board_move.square_from()))
                         .union(Bitboard::from(board_move.square_to()));
-                    let their_bitboard = self.color_bitboard(color_their)
+                    let their_bitboard = self
+                        .color_bitboard(color_their)
                         .difference(Bitboard::from(board_move.square_to()));
-                    self.king_square[color_our].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
+                    self.king_square[color_our]
+                        .attacks_to(self, color_our, our_bitboard, their_bitboard)
+                        .is_empty()
                 }
             }
             MoveType::PASSANT => {
                 //Check if king is under attack after board changes
-                let our_bitboard = self.color_bitboard(color_our)
+                let our_bitboard = self
+                    .color_bitboard(color_our)
                     .invert(Bitboard::from(board_move.square_from()))
                     .union(Bitboard::from(board_move.square_to()));
-                let their_bitboard = self.color_bitboard(color_their)
+                let their_bitboard = self
+                    .color_bitboard(color_their)
                     .difference(Bitboard::from(board_move.square_to().forward(color_their)));
-                self.king_square[color_our].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
+                self.king_square[color_our]
+                    .attacks_to(self, color_our, our_bitboard, their_bitboard)
+                    .is_empty()
             }
             MoveType::CASTLING => {
-                let path = board_move.square_from().between(board_move.square_to())
+                let path = board_move
+                    .square_from()
+                    .between(board_move.square_to())
                     .with_square(board_move.square_to());
-                !path.attacks_to(self, color_our, self.color_bitboard[color_our], self.color_bitboard[color_their])
+                !path.attacks_to(
+                    self,
+                    color_our,
+                    self.color_bitboard[color_our],
+                    self.color_bitboard[color_their],
+                )
             }
             // PROMOTIONS
             _ => {
-                let our_bitboard = self.color_bitboard(color_our)
+                let our_bitboard = self
+                    .color_bitboard(color_our)
                     .invert(Bitboard::from(board_move.square_from()))
                     .union(Bitboard::from(board_move.square_to()));
-                let their_bitboard = self.color_bitboard(color_their)
+                let their_bitboard = self
+                    .color_bitboard(color_their)
                     .difference(Bitboard::from(board_move.square_to()));
-                self.king_square[color_our].attacks_to(self, color_our, our_bitboard, their_bitboard).is_empty()
+                self.king_square[color_our]
+                    .attacks_to(self, color_our, our_bitboard, their_bitboard)
+                    .is_empty()
             }
-        };
+        }
     }
 
     #[inline]
@@ -362,7 +406,7 @@ impl Position {
         self.state.zkey.change_color();
 
         self.set_checkbitboard();
-        return true;
+        true
     }
 
     #[inline]
@@ -382,8 +426,12 @@ impl Position {
 
     #[inline]
     fn set_checkbitboard(&mut self) {
-        self.state.check_bitboard = self.king_square[self.color_to_move]
-            .attacks_to(self, self.color_to_move, self.color_bitboard[self.color_to_move], self.color_bitboard[self.color_to_move.reverse()]);
+        self.state.check_bitboard = self.king_square[self.color_to_move].attacks_to(
+            self,
+            self.color_to_move,
+            self.color_bitboard[self.color_to_move],
+            self.color_bitboard[self.color_to_move.reverse()],
+        );
     }
 
     #[inline]
@@ -428,32 +476,57 @@ impl Position {
 }
 
 impl Bitboard {
-
     #[inline]
-    pub fn attacks_to(&self, position: &Position, defending_color: Color, our_bitboard: Bitboard, their_bitboard: Bitboard) -> bool {
+    pub fn attacks_to(
+        &self,
+        position: &Position,
+        defending_color: Color,
+        our_bitboard: Bitboard,
+        their_bitboard: Bitboard,
+    ) -> bool {
         for square in self.iterator() {
-            if square.attacks_to(position, defending_color, our_bitboard, their_bitboard).is_not_empty() {
+            if square
+                .attacks_to(position, defending_color, our_bitboard, their_bitboard)
+                .is_not_empty()
+            {
                 return true;
             }
         }
-        return false;
+        false
     }
 }
 
 impl Square {
-
     #[inline]
-    pub fn attacks_to(&self, position: &Position, defending_color: Color, our_bitboard: Bitboard, their_bitboard: Bitboard) -> Bitboard {
+    pub fn attacks_to(
+        &self,
+        position: &Position,
+        defending_color: Color,
+        our_bitboard: Bitboard,
+        their_bitboard: Bitboard,
+    ) -> Bitboard {
         let bitboard = our_bitboard.union(their_bitboard);
-        self.pawn_attacks(defending_color).intersect(position.piece_bitboard[PieceType::PAWN])
-            .union(self.knight_moves().intersect(position.piece_bitboard[PieceType::KNIGHT]))
-            .union(self.bishop_moves(bitboard).intersect(position.bishop_like_pieces()))
-            .union(self.rook_moves(bitboard).intersect(position.rook_like_pieces()))
-            .union(self.king_moves().intersect(position.piece_bitboard[PieceType::KING]))
+        self.pawn_attacks(defending_color)
+            .intersect(position.piece_bitboard[PieceType::PAWN])
+            .union(
+                self.knight_moves()
+                    .intersect(position.piece_bitboard[PieceType::KNIGHT]),
+            )
+            .union(
+                self.bishop_moves(bitboard)
+                    .intersect(position.bishop_like_pieces()),
+            )
+            .union(
+                self.rook_moves(bitboard)
+                    .intersect(position.rook_like_pieces()),
+            )
+            .union(
+                self.king_moves()
+                    .intersect(position.piece_bitboard[PieceType::KING]),
+            )
             .intersect(their_bitboard)
     }
 }
-
 
 #[cfg(test)]
 mod test {

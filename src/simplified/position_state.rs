@@ -1,9 +1,9 @@
 use crate::advanced::zobrist_key::ZobristKey;
-use crate::types::color::Color;
-use crate::types::castling_rights::CastlingRights;
-use crate::types::square::Square;
 use crate::types::bitboard::Bitboard;
+use crate::types::castling_rights::CastlingRights;
+use crate::types::color::Color;
 use crate::types::piece_type::PieceType;
+use crate::types::square::Square;
 
 #[derive(Clone, Copy)]
 pub struct PositionState {
@@ -20,7 +20,6 @@ pub struct PositionState {
 }
 
 impl PositionState {
-
     #[inline]
     pub fn new() -> Self {
         Self {
@@ -29,7 +28,7 @@ impl PositionState {
             rule_50: 0,
             castling_rights: CastlingRights::NO_CASTLING,
             ep_square: None,
-            check_bitboard: Bitboard::EMPTY
+            check_bitboard: Bitboard::EMPTY,
         }
     }
 

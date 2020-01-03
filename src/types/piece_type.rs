@@ -1,5 +1,5 @@
-use crate::types::color::Color;
 use crate::types::bitboard::Bitboard;
+use crate::types::color::Color;
 use std::ops::{Index, IndexMut};
 
 #[derive(PartialEq, Eq, PartialOrd, Copy, Clone, Debug, Hash)]
@@ -15,8 +15,10 @@ impl PieceType {
         PieceType::BISHOP,
         PieceType::ROOK,
         PieceType::QUEEN,
-        PieceType::KING];
-    pub const REPRESENTATION: [char; PieceType::NUM_PIECE_TYPES] = ['-', 'p', 'n', 'b', 'r', 'q', 'k'];
+        PieceType::KING,
+    ];
+    pub const REPRESENTATION: [char; PieceType::NUM_PIECE_TYPES] =
+        ['-', 'p', 'n', 'b', 'r', 'q', 'k'];
 
     pub const NONE: PieceType = PieceType(0);
     pub const PAWN: PieceType = PieceType(1);
@@ -27,17 +29,17 @@ impl PieceType {
     pub const KING: PieceType = PieceType(6);
 
     #[inline]
-    pub fn to_usize(&self) -> usize {
+    pub fn to_usize(self) -> usize {
         self.0 as usize
     }
 
     #[inline]
-    pub fn to_char(&self) -> char {
+    pub fn to_char(self) -> char {
         PieceType::REPRESENTATION[self.to_usize()]
     }
 
     #[inline]
-    pub fn to_char_colored(&self, color: Color) -> char {
+    pub fn to_char_colored(self, color: Color) -> char {
         if color == Color::White {
             self.to_char().to_ascii_uppercase()
         } else {
@@ -78,7 +80,6 @@ impl IndexMut<PieceType> for [Bitboard] {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -93,4 +94,3 @@ mod test {
         assert_eq!(PieceType::KING.to_char(), 'k');
     }
 }
-

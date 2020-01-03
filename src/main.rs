@@ -11,5 +11,5 @@ fn main() {
     let dur = duration.as_millis() as u64;
     println!("perft result {}", nodes);
     println!("Time taken {} ms", dur);
-    println!("nps {}", (nodes * 1000 /dur));
+    println!("nps {}", (nodes * 1000 / dur));
 }

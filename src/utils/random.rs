@@ -1,10 +1,8 @@
-
 pub struct Random(i64);
 
 impl Random {
-
-    const MULTIPLIER:i64 = 0x2545F4914F6CDD1D;
-    const INITIAL_SEED:i64 = 0x105524;
+    const MULTIPLIER: i64 = 0x2545F4914F6CDD1D;
+    const INITIAL_SEED: i64 = 0x105524;
 
     pub fn new() -> Self {
         Random(Random::INITIAL_SEED)

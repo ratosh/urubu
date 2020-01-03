@@ -23,17 +23,18 @@ impl File {
         File::FILE_E,
         File::FILE_F,
         File::FILE_G,
-        File::FILE_H];
+        File::FILE_H,
+    ];
 
     pub const REPRESENTATION: [char; File::NUM_FILES] = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
     #[inline]
-    pub fn to_usize(&self) -> usize {
+    pub fn to_usize(self) -> usize {
         return self.0 as usize;
     }
 
     #[inline]
-    pub fn to_char(&self) -> char {
+    pub fn to_char(self) -> char {
         File::REPRESENTATION[self.to_usize()]
     }
 
@@ -46,12 +47,12 @@ impl File {
     }
 
     #[inline]
-    pub fn reverse(&self) -> File {
+    pub fn reverse(self) -> File {
         File(self.0 ^ File::FILE_H.0)
     }
 
     #[inline]
-    pub fn distance(&self, other: Self) -> u8 {
+    pub fn distance(self, other: Self) -> u8 {
         (self.0 - other.0).abs() as u8
     }
 }
@@ -84,4 +85,3 @@ mod test {
         assert_eq!(File::FILE_H.reverse(), File::FILE_A);
     }
 }
-
