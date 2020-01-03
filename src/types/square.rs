@@ -223,16 +223,16 @@ impl Square {
         Square(result)
     }
 
-    pub fn square_dist(&self, other: &Self) -> u8 {
+    pub fn square_dist(&self, other: Self) -> u8 {
         self.rank_dist(other).max(self.file_dist(other))
     }
 
-    pub fn rank_dist(&self, other: &Self) -> u8 {
-        self.to_rank().distance(&other.to_rank())
+    pub fn rank_dist(&self, other: Self) -> u8 {
+        self.to_rank().distance(other.to_rank())
     }
 
-    pub fn file_dist(&self, other: &Self) -> u8 {
-        self.to_file().distance(&other.to_file())
+    pub fn file_dist(&self, other: Self) -> u8 {
+        self.to_file().distance(other.to_file())
     }
 
     pub fn is_valid(&self) -> bool {

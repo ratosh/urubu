@@ -51,7 +51,7 @@ impl File {
     }
 
     #[inline]
-    pub fn distance(&self, other: &Self) -> u8 {
+    pub fn distance(&self, other: Self) -> u8 {
         (self.0 - other.0).abs() as u8
     }
 }

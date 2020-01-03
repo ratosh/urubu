@@ -34,7 +34,7 @@ impl MoveList {
         let king_square = position.king_square(color);
         for castling_index in possible_castling.iterator() {
             let king_to = castling_index.square_king_to();
-            let rook_from = position.rook_from(&castling_index);
+            let rook_from = position.rook_from(castling_index);
             let rook_to = castling_index.square_rook_to();
             let path = king_square.between(king_to)
                 .union(rook_from.between(rook_to));

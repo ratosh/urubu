@@ -202,7 +202,7 @@ fn slide_move(square: Square, slide_value: i8, limit: Bitboard) -> Bitboard {
     let mut result = Bitboard::EMPTY;
     let mut old_square = square;
     while let Some(new_square) = old_square.offset(slide_value) {
-        if old_square.square_dist(&new_square) > 2 {
+        if old_square.square_dist(new_square) > 2 {
             break;
         }
 

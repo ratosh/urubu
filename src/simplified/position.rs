@@ -425,7 +425,7 @@ impl Position {
     }
 
     #[inline]
-    pub fn rook_from(&self, castling_index: &CastlingIndex) -> Square {
+    pub fn rook_from(&self, castling_index: CastlingIndex) -> Square {
         self.initial_rook_square[castling_index.to_usize()]
     }
 }
