@@ -112,14 +112,22 @@ mod test {
     #[test]
 //    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 6);
+        check_perft_file("G:/chess/epds/random.perft", 4);
+    }
+
+    #[test]
+    fn test_perft() {
+        let position = Position::default();
+        let mut perft = Perft::new();
+        let result = perft.perft(&mut position.clone(), 6);
+        println!("Perft is {}", result);
     }
 
     #[test]
     fn test_divide() {
-        let mut position = Position::from_fen("2bqk1nr/p5bp/n2p1P2/p1pPp3/P5p1/RrP5/1P1NPP1P/2B1KBNR w Kk -");
+        let position = Position::default();
         let mut perft = Perft::new();
-        perft.divide(&mut position, 4);
+        perft.divide(&mut position.clone(), 6);
     }
 
     #[test]

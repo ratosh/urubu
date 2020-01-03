@@ -33,7 +33,7 @@ pub struct Position {
 }
 
 impl Position {
-    pub const DEFAULT_FEN: &'static str = "rnbqkbnr/pppppp1p/8/8/8/8/PPPPPPPP/RNB1KBNR w KQkq -";
+    pub const DEFAULT_FEN: &'static str = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -";
     const EMPTY_SPACE: char = ' ';
     const SEPARATOR: char = '/';
 
