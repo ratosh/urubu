@@ -21,17 +21,23 @@ impl ZobristKey {
 
     #[inline]
     pub fn change_piece(self, color: Color, piece_type: PieceType, square: Square) -> ZobristKey {
-        ZobristKey(self.0 ^ PSQT[color.to_usize()][piece_type.to_usize()][square.to_usize()])
+        unsafe {
+            ZobristKey(self.0 ^ PSQT.get_unchecked(color.to_usize()).get_unchecked(piece_type.to_usize()).get_unchecked(square.to_usize()))
+        }
     }
 
     #[inline]
     pub fn set_ep(self, square: Square) -> ZobristKey {
-        ZobristKey(self.0 ^ EP[square.to_file().to_usize()])
+        unsafe {
+            ZobristKey(self.0 ^ EP.get_unchecked(square.to_file().to_usize()))
+        }
     }
 
     #[inline]
     pub fn set_castling_rights(self, castling_rights: CastlingRights) -> ZobristKey {
-        ZobristKey(self.0 ^ CASTLING[castling_rights])
+        unsafe {
+            ZobristKey(self.0 ^ CASTLING.get_unchecked(castling_rights.to_usize()))
+        }
     }
 
     #[inline]
