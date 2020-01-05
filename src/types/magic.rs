@@ -13,6 +13,7 @@ impl Magic {
     pub const BISHOP_SHIFT: usize = 9;
     pub const ROOK_SHIFT: usize = 12;
 
+    #[allow(clippy::all)]
     pub const ROOK: [Magic; Square::NUM_SQUARES] = [
         Magic {
             mask: 0x0001_0101_0101_017e,
@@ -336,6 +337,7 @@ impl Magic {
         },
     ];
 
+    #[allow(clippy::all)]
     pub const BISHOP: [Magic; Square::NUM_SQUARES] = [
         Magic {
             mask: 0x0040201008040200,

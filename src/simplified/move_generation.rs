@@ -23,17 +23,11 @@ impl MoveList {
         if mask.is_not_empty() {
             self.generate_quiet_pawn_moves(position, color_our, color_their, mask);
             self.generate_knight_moves(position, color_our, mask);
-            self.generate_moves(position, color_our, color_their, PieceType::BISHOP, mask);
-            self.generate_moves(position, color_our, color_their, PieceType::ROOK, mask);
-            self.generate_moves(position, color_our, color_their, PieceType::QUEEN, mask);
+            self.generate_bishop_moves(position, color_our, mask);
+            self.generate_rook_moves(position, color_our, mask);
+            self.generate_queen_moves(position, color_our, mask);
         }
-        self.generate_moves(
-            position,
-            color_our,
-            color_their,
-            PieceType::KING,
-            position.empty_bitboard(),
-        );
+        self.generate_king_moves(position, color_our, color_their, position.empty_bitboard());
     }
 
     #[inline]
@@ -82,34 +76,48 @@ impl MoveList {
         for square in position
             .piece_bitboard(color_our, PieceType::KNIGHT)
             .iterator()
-        {
-            self.register_moves_from_square(square, mask.intersect(square.knight_moves()));
-        }
+            {
+                self.register_moves_from_square(square, mask.intersect(square.knight_moves()));
+            }
     }
 
-    fn generate_moves(
-        &mut self,
-        position: &Position,
-        color_our: Color,
-        color_their: Color,
-        piece_type: PieceType,
-        mask: Bitboard,
-    ) {
-        for square in position.piece_bitboard(color_our, piece_type).iterator() {
-            let bitboard = match piece_type {
-                PieceType::KNIGHT => square.knight_moves(),
-                PieceType::BISHOP => square.bishop_moves(position.game_bitboard()),
-                PieceType::ROOK => square.rook_moves(position.game_bitboard()),
-                PieceType::QUEEN => square
-                    .bishop_moves(position.game_bitboard())
-                    .union(square.rook_moves(position.game_bitboard())),
-                PieceType::KING => square
-                    .king_moves()
-                    .difference(position.king_square(color_their).king_moves()),
-                _ => Bitboard::EMPTY,
-            };
-            self.register_moves_from_square(square, mask.intersect(bitboard));
-        }
+    #[inline]
+    fn generate_bishop_moves(&mut self, position: &Position, color_our: Color, mask: Bitboard) {
+        for square in position
+            .piece_bitboard(color_our, PieceType::BISHOP)
+            .iterator()
+            {
+                self.register_moves_from_square(square, mask.intersect(square.bishop_moves(position.game_bitboard())));
+            }
+    }
+
+    #[inline]
+    fn generate_rook_moves(&mut self, position: &Position, color_our: Color, mask: Bitboard) {
+        for square in position
+            .piece_bitboard(color_our, PieceType::ROOK)
+            .iterator()
+            {
+                self.register_moves_from_square(square, mask.intersect(square.rook_moves(position.game_bitboard())));
+            }
+    }
+
+    #[inline]
+    fn generate_queen_moves(&mut self, position: &Position, color_our: Color, mask: Bitboard) {
+        for square in position
+            .piece_bitboard(color_our, PieceType::QUEEN)
+            .iterator()
+            {
+                self.register_moves_from_square(square, mask.intersect(square.bishop_moves(position.game_bitboard()).union(square.rook_moves(position.game_bitboard()))));
+            }
+    }
+
+    #[inline]
+    fn generate_king_moves(&mut self, position: &Position, color_our: Color, color_their: Color, mask: Bitboard) {
+        self.register_moves_from_square(position.king_square(color_our),
+                                        position.king_square(color_our)
+                                            .king_moves()
+                                            .intersect(mask)
+                                            .difference(position.king_square(color_their).king_moves()));
     }
 
     #[inline]
@@ -132,35 +140,11 @@ impl MoveList {
             self.generate_pawn_capture(position, color_our, color_their, capture_mask);
             self.generate_ep_capture(position, color_our, color_their, mask);
             self.generate_knight_moves(position, color_our, capture_mask);
-            self.generate_moves(
-                position,
-                color_our,
-                color_their,
-                PieceType::BISHOP,
-                capture_mask,
-            );
-            self.generate_moves(
-                position,
-                color_our,
-                color_their,
-                PieceType::ROOK,
-                capture_mask,
-            );
-            self.generate_moves(
-                position,
-                color_our,
-                color_their,
-                PieceType::QUEEN,
-                capture_mask,
-            );
+            self.generate_bishop_moves(position, color_our, capture_mask);
+            self.generate_rook_moves(position, color_our, capture_mask);
+            self.generate_queen_moves(position, color_our, capture_mask);
         }
-        self.generate_moves(
-            position,
-            color_our,
-            color_their,
-            PieceType::KING,
-            position.color_bitboard(color_their),
-        );
+        self.generate_king_moves(position, color_our, color_their, position.color_bitboard(color_their));
     }
 
     #[inline]
@@ -236,7 +220,6 @@ impl MoveList {
         for square in pawn_bitboard.iterator() {
             let bitboard_to = square
                 .pawn_attacks(color_our)
-                .intersect(position.color_bitboard(color_their))
                 .intersect(mask);
             self.generate_promotions(square, bitboard_to);
         }

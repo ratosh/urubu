@@ -8,6 +8,7 @@ pub struct Perft {
 }
 
 impl Perft {
+    #[inline]
     pub fn divide(&mut self, position: &mut Position, depth: u8) {
         if depth == 0 {
             return;
@@ -33,6 +34,7 @@ impl Perft {
         self.move_list.end_ply();
     }
 
+    #[inline]
     pub fn perft(&mut self, position: &mut Position, depth: u8) -> u64 {
         if depth == 0 {
             return 1;
@@ -124,7 +126,7 @@ mod test {
     #[test]
     //    #[ignore]
     fn test_random() {
-        check_perft_file("G:/chess/epds/random.perft", 6);
+        check_perft_file("G:/chess/epds/random.perft", 5);
     }
 
     #[test]
