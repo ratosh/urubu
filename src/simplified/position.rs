@@ -10,6 +10,7 @@ use crate::types::move_type::MoveType;
 use crate::types::piece_type::PieceType;
 use crate::types::rank::Rank;
 use crate::types::square::Square;
+use std::ops::BitXor;
 
 // Position encodes all positional information
 #[derive(Clone)]
@@ -174,22 +175,22 @@ impl Position {
     //    }
 
     pub fn setup(&mut self) {
-        self.castling_rights_masks[self.king_square[Color::White.to_usize()].to_usize()] =
+        self.castling_rights_masks[self.king_square[Color::White]] =
             CastlingRights::WHITE_RIGHTS;
-        self.castling_rights_masks[self.king_square[Color::Black.to_usize()].to_usize()] =
+        self.castling_rights_masks[self.king_square[Color::Black]] =
             CastlingRights::BLACK_RIGHTS;
 
         self.castling_rights_masks
-            [self.initial_rook_square[CastlingIndex::WhiteA.to_usize()].to_usize()] =
+            [self.initial_rook_square[CastlingIndex::WhiteA]] =
             CastlingRights::WHITE_OOO;
         self.castling_rights_masks
-            [self.initial_rook_square[CastlingIndex::WhiteH.to_usize()].to_usize()] =
+            [self.initial_rook_square[CastlingIndex::WhiteH]] =
             CastlingRights::WHITE_OO;
         self.castling_rights_masks
-            [self.initial_rook_square[CastlingIndex::BlackA.to_usize()].to_usize()] =
+            [self.initial_rook_square[CastlingIndex::BlackA]] =
             CastlingRights::BLACK_OOO;
         self.castling_rights_masks
-            [self.initial_rook_square[CastlingIndex::BlackH.to_usize()].to_usize()] =
+            [self.initial_rook_square[CastlingIndex::BlackH]] =
             CastlingRights::BLACK_OO;
     }
 
@@ -264,8 +265,8 @@ impl Position {
 
     #[inline]
     pub fn update_castling_rights(&mut self, square_from: Square, square_to: Square) {
-        let right_change = self.castling_rights_masks[square_from.to_usize()]
-            .union(self.castling_rights_masks[square_to.to_usize()]);
+        let right_change = self.castling_rights_masks[square_from]
+            .union(self.castling_rights_masks[square_to]);
 
         self.state.update_castling_rights(right_change);
     }
@@ -284,7 +285,9 @@ impl Position {
                     let our_bitboard = self
                         .color_bitboard(color_our)
                         .invert(Bitboard::from(board_move.square_from()));
-                    let their_bitboard = self.color_bitboard(color_their);
+                    let their_bitboard = self
+                        .color_bitboard(color_their)
+                        .difference(Bitboard::from(board_move.square_to()));
                     board_move
                         .square_to()
                         .attacks_to(self, color_our, our_bitboard, their_bitboard)
@@ -367,7 +370,7 @@ impl Position {
                 if piece_type == PieceType::PAWN {
                     self.state.rule_50 = 0;
                     if square_from.0 ^ square_to.0 == 16 {
-                        self.state.set_ep(square_from.forward(color_our));
+                        self.state.set_ep(Square(square_to.0.bitxor(8)));
                     }
                 }
             }
@@ -389,7 +392,6 @@ impl Position {
                 debug_assert_ne!(promoted_piece, PieceType::NONE);
                 if piece_captured != PieceType::NONE {
                     self.remove_piece(color_their, piece_captured, square_to);
-                    self.state.rule_50 = 0;
                 }
                 self.remove_piece(color_our, PieceType::PAWN, square_from);
                 self.add_piece(color_our, promoted_piece, square_to);
@@ -413,7 +415,7 @@ impl Position {
             CastlingSide::ASide
         };
         let castling_index = CastlingIndex::from_color_side(color, castling_side);
-        let square_rook_from = self.initial_rook_square[castling_index.to_usize()];
+        let square_rook_from = self.initial_rook_square[castling_index];
         let square_rook_to = castling_index.square_rook_to();
 
         self.move_piece(color, PieceType::KING, square_from, square_to);
@@ -467,7 +469,7 @@ impl Position {
 
     #[inline]
     pub fn rook_from(&self, castling_index: CastlingIndex) -> Square {
-        self.initial_rook_square[castling_index.to_usize()]
+        self.initial_rook_square[castling_index]
     }
 }
 

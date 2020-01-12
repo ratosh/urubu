@@ -3,6 +3,9 @@ use crate::types::file::File;
 use crate::types::piece_type::PieceType;
 use crate::types::rank::Rank;
 use std::ops;
+use crate::types::castling_rights::CastlingRights;
+use crate::types::magic::Magic;
+use crate::types::bitboard::Bitboard;
 
 #[derive(PartialOrd, PartialEq, Copy, Clone, Debug)]
 pub struct Square(pub i8);
@@ -193,11 +196,6 @@ impl Square {
     }
 
     #[inline]
-    pub fn new(sq: i8) -> Square {
-        Square(sq)
-    }
-
-    #[inline]
     pub fn to_rank(self) -> Rank {
         Rank(self.0 >> 3)
     }
@@ -254,14 +252,56 @@ impl Square {
 impl ops::Index<Square> for [PieceType] {
     type Output = PieceType;
 
-    fn index(&self, index: Square) -> &PieceType {
-        &self[index.to_usize()]
+    fn index(&self, index: Square) -> &Self::Output {
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
     }
 }
 
 impl ops::IndexMut<Square> for [PieceType] {
     fn index_mut(&mut self, index: Square) -> &mut PieceType {
-        &mut self[index.to_usize()]
+        unsafe {
+            self.get_unchecked_mut(index.to_usize())
+        }
+    }
+}
+
+impl ops::Index<Square> for [CastlingRights] {
+    type Output = CastlingRights;
+
+    fn index(&self, index: Square) -> &Self::Output {
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
+    }
+}
+
+impl ops::IndexMut<Square> for [CastlingRights] {
+    fn index_mut(&mut self, index: Square) -> &mut CastlingRights {
+        unsafe {
+            self.get_unchecked_mut(index.to_usize())
+        }
+    }
+}
+
+impl ops::Index<Square> for [Magic] {
+    type Output = Magic;
+
+    fn index(&self, index: Square) -> &Self::Output {
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
+    }
+}
+
+impl ops::Index<Square> for [Bitboard] {
+    type Output = Bitboard;
+
+    fn index(&self, index: Square) -> &Self::Output {
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
     }
 }
 

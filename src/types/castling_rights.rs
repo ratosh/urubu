@@ -95,6 +95,25 @@ impl CastlingIndex {
     }
 }
 
+impl ops::Index<CastlingIndex> for [Square] {
+    type Output = Square;
+
+    fn index(&self, index: CastlingIndex) -> &Self::Output {
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
+    }
+}
+
+impl ops::IndexMut<CastlingIndex> for [Square] {
+    fn index_mut(&mut self, index: CastlingIndex) -> &mut Square {
+        unsafe {
+            self.get_unchecked_mut(index.to_usize())
+        }
+    }
+}
+
+
 impl CastlingRights {
     pub const NUM_RIGHTS: usize = 16;
 
@@ -191,13 +210,17 @@ impl ops::Index<CastlingRights> for [u64] {
     type Output = u64;
 
     fn index(&self, index: CastlingRights) -> &Self::Output {
-        &self[index.to_usize()]
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
     }
 }
 
 impl ops::IndexMut<CastlingRights> for [u64] {
     fn index_mut(&mut self, index: CastlingRights) -> &mut u64 {
-        &mut self[index.to_usize()]
+        unsafe {
+            self.get_unchecked_mut(index.to_usize())
+        }
     }
 }
 
