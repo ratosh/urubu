@@ -46,7 +46,7 @@ impl Color {
 
     #[inline]
     pub fn to_char(self) -> char {
-        Color::REPRESENTATION[self.to_usize()]
+        Color::REPRESENTATION[self]
     }
 
     #[inline]
@@ -54,6 +54,7 @@ impl Color {
         unsafe { transmute(value as u8) }
     }
 
+    #[inline]
     pub fn from_char(c: char) -> Option<Color> {
         match c {
             'w' => Some(Color::White),
@@ -62,6 +63,7 @@ impl Color {
         }
     }
 
+    #[inline]
     pub fn from_string(st: &str) -> Option<Color> {
         Color::from_char(st.chars().next().unwrap())
     }
@@ -102,6 +104,14 @@ impl ops::Index<Color> for [Square] {
 impl ops::IndexMut<Color> for [Square] {
     fn index_mut(&mut self, index: Color) -> &mut Square {
         unsafe { self.get_unchecked_mut(index.to_usize()) }
+    }
+}
+
+impl ops::Index<Color> for [char] {
+    type Output = char;
+
+    fn index(&self, index: Color) -> &Self::Output {
+        unsafe { self.get_unchecked(index.to_usize()) }
     }
 }
 
