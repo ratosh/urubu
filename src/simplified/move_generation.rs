@@ -6,6 +6,7 @@ use crate::types::move_list::MoveList;
 use crate::types::move_type::MoveType;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
+use std::ops::BitXor;
 
 #[allow(dead_code)]
 impl MoveList {
@@ -156,7 +157,7 @@ impl MoveList {
         mask: Bitboard,
     ) {
         if let Some(ep_square) = position.state().ep_square {
-            if Bitboard::from(ep_square.forward(color_their))
+            if Bitboard::from(Square(ep_square.0.bitxor(8)))
                 .intersect(mask)
                 .is_empty()
             {
