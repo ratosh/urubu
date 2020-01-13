@@ -313,7 +313,7 @@ impl Position {
                     .union(Bitboard::from(board_move.square_to()));
                 let their_bitboard = self
                     .color_bitboard(color_their)
-                    .difference(Bitboard::from(board_move.square_to().forward(color_their)));
+                    .difference(Bitboard::from(Square(board_move.square_to().0.bitxor(8))));
                 self.king_square[color_our]
                     .attacks_to(self, color_our, our_bitboard, their_bitboard)
                     .is_empty()
@@ -358,9 +358,9 @@ impl Position {
         let color_our = self.color_to_move;
         let color_their = color_our.reverse();
 
+        self.state.clear_ep();
         match move_type {
             MoveType::NORMAL => {
-                self.state.clear_ep();
                 let piece_captured = self.piece_type_board[square_to];
                 if piece_captured != PieceType::NONE {
                     self.remove_piece(color_their, piece_captured, square_to);
@@ -375,18 +375,14 @@ impl Position {
                 }
             }
             MoveType::PASSANT => {
-                debug_assert!(self.state.ep_square.is_some());
-                self.remove_piece(color_their, PieceType::PAWN, square_to.forward(color_their));
+                self.remove_piece(color_their, PieceType::PAWN, Square(square_to.0.bitxor(8)));
                 self.move_piece(color_our, PieceType::PAWN, square_from, square_to);
-                self.state.clear_ep();
             }
             MoveType::CASTLING => {
-                self.state.clear_ep();
                 self.do_castle(color_our, square_from, square_to);
             }
             // PROMOTIONS
             _ => {
-                self.state.clear_ep();
                 let promoted_piece = move_type.promoted_piece_type();
                 let piece_captured = self.piece_type_board[square_to];
                 debug_assert_ne!(promoted_piece, PieceType::NONE);

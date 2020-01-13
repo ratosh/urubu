@@ -4,7 +4,7 @@ use crate::types::square::Square;
 pub struct Magic {
     pub mask: u64,
     pub factor: u64,
-    pub offset: u64,
+    pub offset: usize,
 }
 
 impl Magic {

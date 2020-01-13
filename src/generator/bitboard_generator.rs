@@ -162,8 +162,7 @@ pub fn get_magic(
     while !over {
         let attack = slide_moves(square, move_steps, mutable_subset);
         let idx = ((magic.factor.wrapping_mul(mutable_subset.to_u64())
-            >> (Square::NUM_SQUARES - shift) as u64)
-            + magic.offset) as usize;
+            >> (Square::NUM_SQUARES - shift) as u64) + magic.offset as u64) as usize;
         attacks[idx] = attack;
         mutable_subset =
             Bitboard::new((mutable_subset.to_u64().wrapping_sub(magic.mask)) & magic.mask);
