@@ -285,18 +285,24 @@ impl MoveList {
 mod test {
     use crate::simplified::position::Position;
     use crate::types::move_list::MoveList;
+    use crate::simplified::game::Game;
 
     fn count_moves(fen: &str) -> u32 {
-        let position = Position::from_fen(fen);
+        let game = Game::from_fen(fen);
         let mut move_list = MoveList::default();
-        move_list.generate_quiets(&position);
-        move_list.generate_noisy(&position);
+        move_list.generate_quiets(&game.position);
+        move_list.generate_noisy(&game.position);
         let mut legal_moves = 0;
         while move_list.has_next() {
             let board_move = move_list.next();
-            if position.is_legal_move(board_move) {
+            if game.position.is_legal_move(board_move) {
                 println!("move {}", board_move.to_string());
                 legal_moves += 1;
+                let mut clone = game.clone();
+                clone.do_move(board_move);
+                clone.undo_move(board_move);
+                println!("{}", game.position.to_fen());
+                println!("{}", clone.position.to_fen());
             } else {
                 println!("invalid {}", board_move.to_string());
             }
@@ -565,6 +571,13 @@ mod test {
         let legal_moves =
             count_moves("2b1kbnB/rp1qp3/3p3p/2pP1pp1/pnP3P1/PP2P2P/4QP2/RN2KBNR w KQ c6");
         assert_eq!(legal_moves, 29)
+    }
+
+    #[test]
+    fn gen4() {
+        let legal_moves =
+            count_moves("rnb1kbnr/p1q1pppp/1ppp4/8/4B1P1/2P5/PPQPPP1P/RNB1K1NR b KQkq -");
+        assert_eq!(legal_moves, 28)
     }
 }
 

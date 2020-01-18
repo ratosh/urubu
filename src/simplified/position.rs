@@ -1,4 +1,5 @@
 use std::cmp::max;
+use std::ops::BitXor;
 
 use crate::simplified::position_state::PositionState;
 use crate::types::bitboard::Bitboard;
@@ -10,7 +11,7 @@ use crate::types::move_type::MoveType;
 use crate::types::piece_type::PieceType;
 use crate::types::rank::Rank;
 use crate::types::square::Square;
-use std::ops::BitXor;
+use std::cmp;
 
 // Position encodes all positional information
 #[derive(Clone)]
@@ -71,14 +72,14 @@ impl Position {
 
     pub fn from_fen(fen: &str) -> Self {
         let mut result = Position::empty();
-        let mut file: usize = File::FILE_A.to_usize();
+        let mut file: usize = File::A.to_usize();
         let mut rank: usize = Rank::RANK_8.to_usize();
 
         let mut tokens = fen.split(Position::EMPTY_SPACE);
 
         for token in tokens.next().unwrap().chars() {
             if token == Position::SEPARATOR {
-                file = File::FILE_A.to_usize();
+                file = File::A.to_usize();
                 rank -= 1;
             } else if token >= '1' && token <= '8' {
                 let skip = (token as u8 - b'0') as usize;
@@ -102,18 +103,22 @@ impl Position {
 
         if let Some(rule50) = tokens.next() {
             result.state.rule_50 = rule50.parse().unwrap();
+        } else {
+            result.state.rule_50 = 0;
         }
 
         if let Some(move_number) = tokens.next() {
             result.move_number = max(
                 Color::NUM_COLORS as u16
                     * (move_number
-                        .parse::<u16>()
-                        .unwrap()
-                        .wrapping_sub(Color::Black.to_u16())),
+                    .parse::<u16>()
+                    .unwrap()
+                    .wrapping_sub(Color::Black.to_u16())),
                 0,
             ) as u16
                 + color_to_move.to_u16();
+        } else {
+            result.move_number = 0
         }
 
         result.color_to_move = color_to_move;
@@ -124,55 +129,54 @@ impl Position {
         result
     }
 
-    //    pub fn to_fen(&self) -> String {
-    //        let mut result = String::new();
-    //
-    //        let mut empty_squares: u32 = 0;
-    //
-    //        // Board piece representation
-    //        for rank in Rank::RANKS.iter().rev() {
-    //            for file in File::FILES.iter() {
-    //                let square = Square::from_file_rank(file, rank);
-    //                let bitboard = Bitboard::from_square(&square);
-    //                let piece_type = self.piece_type(&square);
-    //                if piece_type == PieceType::NONE {
-    //                    empty_squares += 1;
-    //                    continue;
-    //                }
-    //                if empty_squares > 0 {
-    //                    result.push(std::char::from_digit(empty_squares, 10).unwrap());
-    //                    empty_squares = 0
-    //                }
-    //
-    //
-    //                result.push(piece_type.to_char_colored(self.color_at(&square).unwrap()));
-    //            }
-    //            if empty_squares > 0 {
-    //                result.push(std::char::from_digit(empty_squares, 10).unwrap());
-    //                empty_squares = 0
-    //            }
-    //
-    //            if rank.0 != Rank::RANK_1.0 {
-    //                result.push(Position::SEPARATOR);
-    //            }
-    //        }
-    //
-    //        result.push(Position::EMPTY_SPACE);
-    //        result.push(self.color_to_move.to_char());
-    //        result.push(Position::EMPTY_SPACE);
-    //        result.push_str(self.castling_rights.to_string().as_str());
-    //        result.push(Position::EMPTY_SPACE);
-    //        if let Some(ep_square) = self.ep_square {
-    //            result.push_str(ep_square.to_string().as_str());
-    //        } else {
-    //            result.push_str("-");
-    //        }
-    //        result.push(Position::EMPTY_SPACE);
-    //        result.push_str(self.rule_50.to_string().as_str());
-    //        result.push(Position::EMPTY_SPACE);
-    //        result.push_str(cmp::max(1, (self.move_number as i16 - self.color_to_move.to_i16()) / 2).to_string().as_str());
-    //        return result;
-    //    }
+    pub fn to_fen(&self) -> String {
+        let mut result = String::new();
+
+        let mut empty_squares: u32 = 0;
+
+        // Board piece representation
+        for rank in Rank::RANKS.iter().rev() {
+            for file in File::FILES.iter() {
+                let square = Square::from_file_rank(*file, *rank);
+                let bitboard = Bitboard::from(square);
+                let piece_type = self.piece_at(square);
+                if piece_type == PieceType::NONE {
+                    empty_squares += 1;
+                    continue;
+                }
+                if empty_squares > 0 {
+                    result.push(std::char::from_digit(empty_squares, 10).unwrap());
+                    empty_squares = 0
+                }
+
+                result.push(piece_type.to_char_colored(self.color_at(square).unwrap()));
+            }
+            if empty_squares > 0 {
+                result.push(std::char::from_digit(empty_squares, 10).unwrap());
+                empty_squares = 0
+            }
+
+            if rank.0 != Rank::RANK_1.0 {
+                result.push(Position::SEPARATOR);
+            }
+        }
+
+        result.push(Position::EMPTY_SPACE);
+        result.push(self.color_to_move.to_char());
+        result.push(Position::EMPTY_SPACE);
+        result.push_str(self.state.castling_rights.to_string().as_str());
+        result.push(Position::EMPTY_SPACE);
+        if let Some(ep_square) = self.state.ep_square {
+            result.push_str(ep_square.to_string().as_str());
+        } else {
+            result.push_str("-");
+        }
+        result.push(Position::EMPTY_SPACE);
+        result.push_str(self.state.rule_50.to_string().as_str());
+        result.push(Position::EMPTY_SPACE);
+        result.push_str(cmp::max(1, (self.move_number as i16 - self.color_to_move.to_i16()) / 2).to_string().as_str());
+        result
+    }
 
     pub fn setup(&mut self) {
         self.castling_rights_masks[self.king_square[Color::White]] =
@@ -239,9 +243,10 @@ impl Position {
 
     #[inline]
     pub fn color_at(&self, square: Square) -> Option<Color> {
-        if self.color_bitboard[Color::White] == Bitboard::from(square) {
+        let bitboard = Bitboard::from(square);
+        if self.color_bitboard[Color::White].has(bitboard) {
             Some(Color::White)
-        } else if self.color_bitboard[Color::Black] == Bitboard::from(square) {
+        } else if self.color_bitboard[Color::Black].has(bitboard) {
             Some(Color::Black)
         } else {
             None
@@ -347,7 +352,7 @@ impl Position {
     }
 
     #[inline]
-    pub fn do_move(&mut self, board_move: BoardMove) -> bool {
+    pub fn do_move(&mut self, board_move: BoardMove) -> (PieceType, Square) {
         self.state.rule_50 += 1;
 
         let square_from = board_move.square_from();
@@ -357,13 +362,14 @@ impl Position {
 
         let color_our = self.color_to_move;
         let color_their = color_our.reverse();
+        let mut piece_type_captured = self.piece_type_board[square_to];
+        let mut square_captured = square_to;
 
         self.state.clear_ep();
         match move_type {
             MoveType::NORMAL => {
-                let piece_captured = self.piece_type_board[square_to];
-                if piece_captured != PieceType::NONE {
-                    self.remove_piece(color_their, piece_captured, square_to);
+                if piece_type_captured != PieceType::NONE {
+                    self.remove_piece(color_their, piece_type_captured, square_to);
                     self.state.rule_50 = 0;
                 }
                 self.move_piece(color_our, piece_type, square_from, square_to);
@@ -375,7 +381,9 @@ impl Position {
                 }
             }
             MoveType::PASSANT => {
-                self.remove_piece(color_their, PieceType::PAWN, Square(square_to.0.bitxor(8)));
+                piece_type_captured = PieceType::PAWN;
+                square_captured = Square(square_to.0.bitxor(8));
+                self.remove_piece(color_their, PieceType::PAWN, square_captured);
                 self.move_piece(color_our, PieceType::PAWN, square_from, square_to);
             }
             MoveType::CASTLING => {
@@ -384,10 +392,9 @@ impl Position {
             // PROMOTIONS
             _ => {
                 let promoted_piece = move_type.promoted_piece_type();
-                let piece_captured = self.piece_type_board[square_to];
                 debug_assert_ne!(promoted_piece, PieceType::NONE);
-                if piece_captured != PieceType::NONE {
-                    self.remove_piece(color_their, piece_captured, square_to);
+                if piece_type_captured != PieceType::NONE {
+                    self.remove_piece(color_their, piece_type_captured, square_to);
                 }
                 self.remove_piece(color_our, PieceType::PAWN, square_from);
                 self.add_piece(color_our, promoted_piece, square_to);
@@ -400,7 +407,42 @@ impl Position {
         self.state.zkey.change_color();
 
         self.set_checkbitboard();
-        true
+        (piece_type_captured, square_captured)
+    }
+
+    #[inline]
+    pub fn undo_move(&mut self, board_move: BoardMove, piece_type_captured: PieceType, square_captured: Square, state: &PositionState) {
+        let move_type = board_move.move_type();
+
+        let square_from = board_move.square_from();
+        let square_to = board_move.square_to();
+
+        let piece_type_moved = self.piece_type_board[square_to];
+
+        let color_their = self.color_to_move;
+        let color_our = color_their.reverse();
+
+        match move_type {
+            MoveType::NORMAL => {
+                self.move_piece(color_our, piece_type_moved, square_to, square_from);
+            }
+            MoveType::PASSANT => {
+                self.move_piece(color_our, piece_type_moved, square_to, square_from);
+            }
+            MoveType::CASTLING => {
+                self.undo_castle(color_our, square_from, square_to);
+            }
+            _ => {
+                self.remove_piece(color_our, piece_type_moved, square_to);
+                self.add_piece(color_our, PieceType::PAWN, square_from);
+            }
+        }
+
+        if piece_type_captured != PieceType::NONE {
+            self.add_piece(color_their, piece_type_captured, square_captured);
+        }
+        self.color_to_move = self.color_to_move.reverse();
+        self.state = state.clone();
     }
 
     #[inline]
@@ -416,6 +458,21 @@ impl Position {
 
         self.move_piece(color, PieceType::KING, square_from, square_to);
         self.move_piece(color, PieceType::ROOK, square_rook_from, square_rook_to);
+    }
+
+    #[inline]
+    fn undo_castle(&mut self, color: Color, square_from: Square, square_to: Square) {
+        let castling_side = if square_to.0 > square_from.0 {
+            CastlingSide::HSide
+        } else {
+            CastlingSide::ASide
+        };
+        let castling_index = CastlingIndex::from_color_side(color, castling_side);
+        let square_rook_from = self.initial_rook_square[castling_index];
+        let square_rook_to = castling_index.square_rook_to();
+
+        self.move_piece(color, PieceType::KING, square_to, square_from);
+        self.move_piece(color, PieceType::ROOK, square_rook_to, square_rook_from);
     }
 
     #[inline]

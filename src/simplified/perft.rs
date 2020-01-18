@@ -1,5 +1,6 @@
 use crate::simplified::position::Position;
 use crate::types::move_list::MoveList;
+use crate::simplified::game::Game;
 
 pub struct Perft {
     move_list: MoveList,
@@ -9,24 +10,23 @@ pub struct Perft {
 
 impl Perft {
     #[inline]
-    pub fn divide(&mut self, position: &mut Position, depth: u8) {
+    pub fn divide(&mut self, game: &mut Game, depth: u8) {
         if depth == 0 {
             return;
         }
         self.move_list.start_ply();
-        self.move_list.generate_noisy(position);
-        self.move_list.generate_quiets(position);
+        self.move_list.generate_noisy(&game.position);
+        self.move_list.generate_quiets(&game.position);
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            if position.is_legal_move(board_move) {
-                let mut clone = position.clone();
-                clone.do_move(board_move);
+            if game.do_move(board_move) {
                 println!(
                     "{} -> {}",
                     board_move.to_string(),
-                    self.perft(&mut clone, depth - 1)
+                    self.perft(game, depth - 1)
                 );
+                game.undo_move(board_move);
             } else {
                 println!("illegal -> {}", board_move.to_string());
             }
@@ -35,23 +35,22 @@ impl Perft {
     }
 
     #[inline]
-    pub fn perft(&mut self, position: &mut Position, depth: u8) -> u64 {
+    pub fn perft(&mut self, game: &mut Game, depth: u8) -> u64 {
         if depth == 0 {
             return 1;
         }
         self.move_list.start_ply();
-        self.move_list.generate_noisy(position);
-        self.move_list.generate_quiets(position);
+        self.move_list.generate_noisy(&game.position);
+        self.move_list.generate_quiets(&game.position);
 
         let mut result = 0;
 
         while self.move_list.has_next() {
             let board_move = self.move_list.next();
-            if position.is_legal_move(board_move) {
-                let mut clone = position.clone();
-                clone.do_move(board_move);
-                result += self.perft(&mut clone, depth - 1);
+            if game.do_move(board_move) {
+                result += self.perft(game, depth - 1);
                 self.valid_moves += 1;
+                game.undo_move(board_move);
             } else {
                 self.invalid_moves += 1;
             }
@@ -81,12 +80,13 @@ mod test {
     use crate::types::square::Square;
     use std::fs::File;
     use std::io::{BufRead, BufReader};
+    use crate::simplified::game::Game;
 
     fn check_perft_file(path: &str, depth_limit: u8) {
         let file = File::open(path).expect("failed to open test suite");
         let reader = BufReader::new(file);
 
-        let mut position = Position::empty();
+        let mut game = Game::default();
         let mut perft = Perft::default();
 
         for line in reader.lines().map(|l| l.unwrap()) {
@@ -96,7 +96,7 @@ mod test {
                 Some("epd") => {
                     let fen = slices.next().expect("expected position");
                     println!("position {}", fen);
-                    position = Position::from_fen(fen);
+                    game = Game::from_fen(fen);
                 }
                 Some("perft") => {
                     let mut params = slices.next().expect("expected perft params").splitn(2, ' ');
@@ -113,7 +113,7 @@ mod test {
                         .expect("expected integer value");
 
                     if depth <= depth_limit {
-                        assert_eq!(perft.perft(&mut position, depth), nodes);
+                        assert_eq!(perft.perft(&mut game, depth), nodes);
                     }
                 }
                 _ => {}
@@ -131,31 +131,31 @@ mod test {
 
     #[test]
     fn test_perft() {
-        let position = Position::default();
+        let game = Game::default();
         let mut perft = Perft::default();
-        let result = perft.perft(&mut position.clone(), 6);
+        let result = perft.perft(&mut game.clone(), 2);
         println!("Perft is {}", result);
     }
 
     #[test]
     fn test_divide() {
-        let position = Position::default();
+        let game = Game::default();
         let mut perft = Perft::default();
-        perft.divide(&mut position.clone(), 6);
+        perft.divide(&mut game.clone(), 2);
     }
 
     #[test]
     fn test_divide1() {
-        let mut position =
-            Position::from_fen("2bqk1nr/p5bp/n2p1P2/p1pPp3/P5p1/RrP5/1P1NPP1P/2B1KBNR w Kk -");
-        position.do_move(BoardMove::build_normal(Square::F6, Square::G7));
-        position.do_move(BoardMove::build_normal(Square::G8, Square::F6));
-        position.do_move(BoardMove::build_move(
+        let mut game =
+            Game::from_fen("2bqk1nr/p5bp/n2p1P2/p1pPp3/P5p1/RrP5/1P1NPP1P/2B1KBNR w Kk -");
+        game.do_move(BoardMove::build_normal(Square::F6, Square::G7));
+        game.do_move(BoardMove::build_normal(Square::G8, Square::F6));
+        game.do_move(BoardMove::build_move(
             Square::G7,
             Square::H8,
             MoveType::PROMOTION_BISHOP,
         ));
         let mut perft = Perft::default();
-        perft.divide(&mut position, 1);
+        perft.divide(&mut game, 1);
     }
 }

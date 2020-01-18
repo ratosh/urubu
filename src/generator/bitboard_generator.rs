@@ -130,8 +130,8 @@ fn init_neighbour() -> [Bitboard; Square::NUM_SQUARES] {
         let file = square.to_file();
 
         let bitboard_bounds = match file {
-            crate::types::file::File::FILE_H => Bitboard::FILE_A.reverse(),
-            crate::types::file::File::FILE_A => Bitboard::FILE_H.reverse(),
+            crate::types::file::File::H => Bitboard::FILE_A.reverse(),
+            crate::types::file::File::A => Bitboard::FILE_H.reverse(),
             _ => Bitboard::ALL,
         };
 
@@ -241,12 +241,12 @@ fn init_pawn_attacks() -> [[Bitboard; Square::NUM_SQUARES]; Color::NUM_COLORS] {
 
 fn init_pawn_attack(square: Square, color: Color) -> Bitboard {
     let mut result = Bitboard::EMPTY;
-    if square.to_file() != file::File::FILE_A {
+    if square.to_file() != file::File::A {
         if let Some(final_square) = square.offset(PAWN_ATTACK_LEFT[color.to_usize()]) {
             result = result.union(Bitboard::from(final_square));
         }
     }
-    if square.to_file() != file::File::FILE_H {
+    if square.to_file() != file::File::H {
         if let Some(final_square) = square.offset(PAWN_ATTACK_RIGHT[color.to_usize()]) {
             result = result.union(Bitboard::from(final_square));
         }

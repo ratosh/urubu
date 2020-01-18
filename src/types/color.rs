@@ -50,7 +50,7 @@ impl Color {
     }
 
     #[inline]
-    pub fn unsafe_creation(value: i8) -> Color {
+    pub fn new(value: i8) -> Color {
         unsafe { transmute(value as u8) }
     }
 
@@ -70,7 +70,7 @@ impl Color {
 
     #[inline]
     pub fn reverse(self) -> Color {
-        Color::unsafe_creation(self.to_i8() ^ 1)
+        Color::new(self.to_i8() ^ 1)
     }
 
     #[inline]

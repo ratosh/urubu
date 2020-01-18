@@ -171,6 +171,11 @@ impl Square {
     }
 
     #[inline]
+    pub fn to_i8(self) -> i8 {
+        self.0 as i8
+    }
+
+    #[inline]
     pub fn to_u16(self) -> u16 {
         self.0 as u16
     }
@@ -192,7 +197,7 @@ impl Square {
 
     #[inline]
     pub fn from_file_rank(file: File, rank: Rank) -> Square {
-        Square(rank.0.wrapping_shl(3) + file.0)
+        Square(rank.0.wrapping_shl(3) + file.to_i8())
     }
 
     #[inline]
@@ -202,7 +207,7 @@ impl Square {
 
     #[inline]
     pub fn to_file(self) -> File {
-        File(self.0 & 7)
+        File::new(self.to_i8() & 7)
     }
 
     #[inline]
