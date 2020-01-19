@@ -16,5 +16,5 @@ RUN apt-get update \
 
 WORKDIR /app
 RUN echo 0 > /proc/sys/kernel/kptr_restrict
-RUN perf record --call-graph dwarf -- cargo run --release
-RUN perf report
+#RUN perf record --call-graph dwarf -- cargo run --release
+#RUN perf report
