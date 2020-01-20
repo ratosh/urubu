@@ -85,6 +85,17 @@ impl IndexMut<PieceType> for [Bitboard] {
     }
 }
 
+impl Index<PieceType> for [i16] {
+    type Output = i16;
+
+    fn index(&self, index: PieceType) -> &Self::Output {
+        unsafe {
+            self.get_unchecked(index.to_usize())
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod test {
     use super::*;

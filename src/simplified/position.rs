@@ -354,6 +354,7 @@ impl Position {
     #[inline]
     pub fn do_move(&mut self, board_move: BoardMove) -> (PieceType, Square) {
         self.state.rule_50 += 1;
+        self.move_number += 1;
 
         let square_from = board_move.square_from();
         let square_to = board_move.square_to();
@@ -412,6 +413,7 @@ impl Position {
 
     #[inline]
     pub fn undo_move(&mut self, board_move: BoardMove, piece_type_captured: PieceType, square_captured: Square, state: &PositionState) {
+        self.move_number -= 1;
         let move_type = board_move.move_type();
 
         let square_from = board_move.square_from();
