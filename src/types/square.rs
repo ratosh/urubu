@@ -3,6 +3,7 @@ use crate::types::file::File;
 use crate::types::piece_type::PieceType;
 use crate::types::rank::Rank;
 use std::ops;
+use std::ops::BitXor;
 use crate::types::castling_rights::CastlingRights;
 use crate::types::magic::Magic;
 use crate::types::bitboard::Bitboard;
@@ -171,11 +172,6 @@ impl Square {
     }
 
     #[inline]
-    pub fn to_i8(self) -> i8 {
-        self.0 as i8
-    }
-
-    #[inline]
     pub fn to_u16(self) -> u16 {
         self.0 as u16
     }
@@ -186,17 +182,22 @@ impl Square {
     }
 
     #[inline]
-    pub fn reverse(self) -> Square {
+    pub fn reverse(self) -> Self {
         Square(self.0 ^ Square::A8.0)
     }
 
     #[inline]
-    pub fn relative(self, color: Color) -> Square {
+    pub fn relative(self, color: Color) -> Self {
         Square(self.0 ^ (Square::A8.0 * color.to_i8()))
     }
 
     #[inline]
-    pub fn from_file_rank(file: File, rank: Rank) -> Square {
+    pub fn ep_trick(self) -> Self {
+        Square(self.0.bitxor(8))
+    }
+
+    #[inline]
+    pub fn from_file_rank(file: File, rank: Rank) -> Self {
         Square(rank.0.wrapping_shl(3) + file.to_i8())
     }
 
@@ -207,7 +208,7 @@ impl Square {
 
     #[inline]
     pub fn to_file(self) -> File {
-        File::new(self.to_i8() & 7)
+        File::new(self.0 & 7)
     }
 
     #[inline]
