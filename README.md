@@ -9,9 +9,16 @@ A chess engine written in Rust using neural networks.
 - Color as a number from 0 (white) to 1 (black);
 
 ### Input 1 (768 inputs)
+
 Similar to a simple bitboard board representation (https://www.chessprogramming.org/Bitboard_Board-Definition).
 
-We can represent the board as 768 inputs: (square number * (piece number * (color + 1)))
+We can represent the board as 768 inputs: ((square + 1) * (piece * (color + 1))) - 1
+
+Pros:
+- Simple moves only change 2 indexes;
+- A capture is 1 more index (Removing the captured piece);
+- A promotion is 1 more index (Adding the promoted piece);
+- Castling only changes 4 indexes;
 
 ### Input 2 (512 inputs)
 Similar to a dense bitboard representation.
@@ -19,8 +26,11 @@ Similar to a dense bitboard representation.
 - Other layers would be pieces (6 layers).
 
 Each piece would show up on 2 different layers (In a color layer and in a piece layer).
+- Index on color layers: ((square + 1) * (color + 1)) - 1
+- Index on piece layers: ((square + 1) * (piece + 3)) - 1
 
-(square number * (piece number * (color + 1)))
+Pros:
+- Shorter input;
 
 ### Output
 
@@ -87,5 +97,9 @@ To be tested:
 
 ## To discuss
 
+### Network size
+- Bigger network provides more accuracy but is slower to run;
+
 ### Aggregate result
 - Aggregate position result from different games (having win chance based on many games instead of just one);
+- More confidence that networks with more accuracy is actually a better network;
