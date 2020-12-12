@@ -12,7 +12,7 @@ A chess engine written in Rust using neural networks.
 
 Similar to a simple bitboard board representation (https://www.chessprogramming.org/Bitboard_Board-Definition).
 
-We can represent the board as 768 inputs: ((square + 1) * (piece * (color + 1))) - 1
+We can represent the board as 768 inputs: square + 64 * (piece - 1) + 64 * 6 * color
 
 Pros:
 - Simple moves only change 2 indexes;
@@ -26,8 +26,8 @@ Similar to a dense bitboard representation.
 - Other layers would be pieces (6 layers).
 
 Each piece would show up on 2 different layers (In a color layer and in a piece layer).
-- Index on color layers: ((square + 1) * (color + 1)) - 1
-- Index on piece layers: ((square + 1) * (piece + 3)) - 1
+- Index on color layers: square + 64 * color
+- Index on piece layers: square + 64 * (piece + 1)
 
 Pros:
 - Shorter input;
