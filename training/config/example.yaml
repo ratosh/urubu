@@ -1,0 +1,21 @@
+name: 'name'
+device: cpu
+training:
+  batch_size: 8192
+  input: '.\input_sample\'
+  validation: '.\validation_sample\'
+  output: '.\training\'
+  steps: 100000
+  learning_rate:
+    - 0.01
+    - 0.001
+    - 0.0001
+  learning_rate_bounds:
+    - 50000
+    - 80000
+model:
+  type: 0
+  dense:
+     - 32
+     - 32
+     - 1

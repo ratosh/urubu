@@ -79,9 +79,14 @@ Pros:
 - Engine should use the NN to evaluate the position;
 
 ## Validation
+
+### Using games
 Similar to fishtest, should run games and check which one performs better. Use existing tools?
 - Fishtest
 - Openbench
+
+### Using TB
+Use syzygy endgame TB to validate training (Better accuracy means better end game nets).
 
 ## Automation
 Generating and validating the NN should be an automated process, user input should be as simple as possible.

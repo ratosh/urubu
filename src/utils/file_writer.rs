@@ -18,7 +18,7 @@ pub fn write_2d_bitboard_array(file: &mut File, name: &str, array: &[[Bitboard; 
     let inner_size = array[0].len();
     let outer_size = array.len();
     write!(file, "const {}: [[Bitboard; {}];{}] = [", name, inner_size, outer_size)?;
-    for (index, entry) in array.iter().enumerate() {
+    for entry in array.iter() {
         write!(file, "\n[")?;
         for inner_entry in entry.iter() {
             write!(file, "  Bitboard({}), ", inner_entry.to_usize())?;
