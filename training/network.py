@@ -3,30 +3,45 @@ import torch
 from torch import nn
 
 
-class NetworkFactory:
+class ParserFactory:
 
     def __init__(self):
         self._network = {}
 
-    def register_type(self, code, network):
+    def register(self, code, network):
         self._network[code] = network
 
-    def get_network(self, cfg):
+    def get(self, cfg):
         code = cfg.model_type
         network = self._network.get(code)
         if not network:
-            raise ValueError("Missing encoder for {}".format(code))
+            raise ValueError("Missing network encoder for {}".format(code))
         return network(cfg)
 
 
-network_factory = NetworkFactory()
+parser_factory = ParserFactory()
+
+
+class SimpleBitboard:
+
+    def __init__(self, cfg):
+        self.network = SimpleBitboardNetwork(cfg)
+        self.encoder = FenToSimpleBitboardEncoder()
+
+    def get_network(self):
+        return self.network
+
+    def get_encoder(self):
+        return self.encoder
+
+
+parser_factory.register(0, SimpleBitboard)
 
 
 class SimpleBitboardNetwork(nn.Module):
 
     def __init__(self, cfg):
         super(SimpleBitboardNetwork, self).__init__()
-        self.cfg = cfg
         self.hidden = []
         for index, nodes in enumerate(cfg.model_dense_layout):
             if index == 0:
@@ -44,9 +59,20 @@ class SimpleBitboardNetwork(nn.Module):
         x = self.output(x)
         return x
 
-    def encode(self, fen):
-        # TODO: Encode NN input
-        return str
 
+class FenToSimpleBitboardEncoder:
 
-network_factory.register_type(0, SimpleBitboardNetwork)
+    def encode_fen(self, fen):
+        board = chess.Board(fen=fen)
+        result = torch.zeros(768)
+        for (square, piece) in board.piece_map().items():
+            result[self.calculate_index(square, piece)] = 1.0
+        return result
+
+    @staticmethod
+    def encode_result(result):
+        return torch.tensor([float(result)])
+
+    @staticmethod
+    def calculate_index(square: chess.Square, piece: chess.Piece):
+        return square + 64 * (piece.piece_type - 1) + 64 * 6 * piece.color
