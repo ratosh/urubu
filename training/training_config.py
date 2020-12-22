@@ -1,5 +1,7 @@
 import os
 
+import torch
+
 
 class TrainingConfig:
 
@@ -25,7 +27,7 @@ class TrainingConfig:
     #       - 32
     #       - 1
     def __init__(self, yaml_file):
-        self.device = yaml_file['device']
+        self.device = torch.device(yaml_file.get('device', 'cpu'))
         self.batch_size = yaml_file['training'].get('batch_size', 1024)
         self.input = yaml_file['training']['input']
         self.output = os.path.join(yaml_file['training']['output'], yaml_file['name'])

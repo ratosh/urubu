@@ -7,30 +7,24 @@ from training.network import parser_factory
 
 class CsvDataset(Dataset):
 
-    @staticmethod
-    def count_chunks_in_files(file):
-        chunks = 0
+    def count_chunks_in_files(self, file):
         for line in open(file):
-            chunks += 1
-        return chunks
+            self.items.append(line)
 
-    def check_folder_files(self, directory):
-        files = {}
+    def load_folder_files(self, directory):
         iterator = glob.iglob(directory + "*.csv")
         for file in iterator:
-            files[file] = self.count_chunks_in_files(file)
-        return files
+            self.count_chunks_in_files(file)
 
-    def check_all_folders(self, path):
-        chunks = {}
+    def load_files(self, path):
         iterator = glob.iglob(path)
         for directory in iterator:
-            chunks = {**chunks, **self.check_folder_files(directory)}
-        return chunks
+            self.load_folder_files(directory)
 
     def __init__(self, cfg, input_location):
-        self.file_line_count = self.check_all_folders(input_location)
-        self.len = sum(self.file_line_count.values())
+        self.items = []
+        self.load_files(input_location)
+        self.len = len(self.items)
         self.encoder = parser_factory.get(cfg).get_encoder()
         print("Found {} chunks".format(self.len))
 
@@ -38,17 +32,8 @@ class CsvDataset(Dataset):
         return self.len
 
     def __getitem__(self, index):
-        fen = {}
-        result = 0.0
-        for (file_name, count) in self.file_line_count.items():
-            if index < count:
-                with open(file_name) as file:
-                    for skip_lines in range(index):
-                        file.readline()
-                    line = file.readline()
-                    split = line.split(",")
-                    fen = split[0]
-                    result = split[1]
-            index -= count
-
+        item = self.items[index]
+        split = item.split(",")
+        fen = split[0]
+        result = split[1]
         return self.encoder.encode_fen(fen), self.encoder.encode_result(result)
