@@ -25,13 +25,14 @@ def train(args):
     train_loader = DataLoader(dataset=train_dataset, batch_size=cfg.batch_size, shuffle=True)
 
     network = parser_factory.get(cfg).get_network()
-    criterion = nn.BCEWithLogitsLoss()
+    network.to(cfg.device)
+    criterion = nn.MSELoss(reduction="sum")
     optimizer = optim.Adam(network.parameters(), lr=cfg.lr[0])
     lr_index = 0
 
     for step in range(cfg.steps):
         start_time = time.time()
-        print("Starting step {} at {}.".format(step, datetime.datetime.now()))
+        print("Starting step {} at {}.".format(step + 1, datetime.datetime.now()))
         losses = []
         if lr_index < len(cfg.lr_bounds) and cfg.lr_bounds[lr_index] <= step:
             lr_index += 1
@@ -39,7 +40,6 @@ def train(args):
         print("Learning rate {}".format(cfg.lr[lr_index]))
 
         for batch_idx, (data, targets) in enumerate(train_loader):
-            print("Batch {}".format(batch_idx))
             scores = network(data)
             loss = criterion(scores, targets)
 
@@ -50,7 +50,6 @@ def train(args):
             loss.backward()
 
             optimizer.step()
-            print("Batch loss {}".format(loss.item()))
 
         elapsed_time = time.time() - start_time
         print("Step completed")
