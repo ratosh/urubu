@@ -2,7 +2,7 @@ import glob
 
 from torch.utils.data import Dataset
 
-from training.network import parser_factory
+from network import parser_factory
 
 
 class CsvDataset(Dataset):
@@ -23,16 +23,21 @@ class CsvDataset(Dataset):
 
     def __init__(self, cfg, input_location):
         self.items = []
+        self.encoded = {}
+        self.encoder = parser_factory.get(cfg).get_encoder()
         self.load_files(input_location)
         self.len = len(self.items)
-        self.encoder = parser_factory.get(cfg).get_encoder()
 
     def __len__(self):
         return self.len
 
-    def __getitem__(self, index):
-        item = self.items[index]
+    def encode(self, item):
         split = item.split(",")
         fen = split[0]
         result = split[1]
         return self.encoder.encode_fen(fen), self.encoder.encode_result(result)
+
+    def __getitem__(self, index):
+        if len(self.encoded) < index or index not in self.encoded:
+            self.encoded[index] = self.encode(self.items[index])
+        return self.encoded[index]

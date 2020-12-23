@@ -9,8 +9,8 @@ from torch import nn, optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 
-from training.dataset import CsvDataset
-from training.network import parser_factory
+from dataset import CsvDataset
+from network import parser_factory
 from training_config import TrainingConfig
 
 
@@ -22,7 +22,6 @@ def train(args):
     output_dir = cfg.output
     start_step = 0
     network = parser_factory.get(cfg).get_network()
-    network.to(cfg.device)
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -46,6 +45,7 @@ def train(args):
     criterion = nn.MSELoss(reduction="sum")
     optimizer = optim.Adam(network.parameters(), lr=cfg.lr[0])
     lr_index = 0
+    network.to(cfg.device)
 
     for step in range(start_step, cfg.steps):
         losses = []
@@ -55,8 +55,8 @@ def train(args):
 
         loop = tqdm(enumerate(train_loader), total=len(train_loader))
         for idx, (data, targets) in loop:
-            scores = network(data)
-            loss = criterion(scores, targets)
+            scores = network(data.to(cfg.device))
+            loss = criterion(scores, targets.to(cfg.device))
 
             losses.append(loss.item())
 
@@ -93,7 +93,7 @@ def check_accuracy(loader, model, device):
             error += 1 - abs(y - score)
             num_samples += 1
 
-        print(f"{num_samples} samples with accuracy {float(error)/float(num_samples)*100:.2f}")
+        print(f"{num_samples} samples with accuracy {float(error)/float(num_samples)*100:.2f}%")
 
     model.train()
 

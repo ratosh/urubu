@@ -1,22 +1,22 @@
-name: 'first_cpu-32x32'
-device: cpu
+name: 'first_cpu-64x32'
+device: cuda
 training:
   threads: 8
   batch_size: 8192
   input: '.\input_sample\'
   validation: '.\validation_sample\'
   output: '.\training\'
-  steps: 100
+  steps: 1000
   learning_rate:
     - 0.01
     - 0.001
     - 0.0001
   learning_rate_bounds:
-    - 50
-    - 80
+    - 500
+    - 800
 model:
   type: 0
   dense:
-     - 32
+     - 64
      - 32
      - 1
