@@ -26,7 +26,6 @@ class CsvDataset(Dataset):
         self.load_files(input_location)
         self.len = len(self.items)
         self.encoder = parser_factory.get(cfg).get_encoder()
-        print("Found {} chunks".format(self.len))
 
     def __len__(self):
         return self.len

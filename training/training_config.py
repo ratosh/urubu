@@ -8,10 +8,11 @@ class TrainingConfig:
     # name: 'name'
     # device: cpu/cuda
     # training:
+    #   threads: 8
     #   batch_size: 1024
     #   input: '.\input_sample\'
     #   output: '.\training_output\'
-    #   validation: '.\validation_sample\'
+    #   validation_sample: '.\validation_sample\'
     #   steps: 100000
     #   learning_rate:
     #       - 0.01
@@ -28,6 +29,7 @@ class TrainingConfig:
     #       - 1
     def __init__(self, yaml_file):
         self.device = torch.device(yaml_file.get('device', 'cpu'))
+        self.threads = yaml_file['training'].get('threads', 1)
         self.batch_size = yaml_file['training'].get('batch_size', 1024)
         self.input = yaml_file['training']['input']
         self.output = os.path.join(yaml_file['training']['output'], yaml_file['name'])

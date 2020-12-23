@@ -50,7 +50,6 @@ class SimpleBitboardNetwork(nn.Module):
                 self.output = nn.Linear(cfg.model_dense_layout[index - 1], nodes)
             else:
                 self.hidden.append(nn.Linear(cfg.model_dense_layout[index - 1], nodes))
-        self.output = nn.Linear(32, 1)
 
     def forward(self, x):
         x = self.input(x)
