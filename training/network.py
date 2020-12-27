@@ -45,7 +45,7 @@ class SimpleBitboardNetwork(nn.Module):
         self.hidden = []
         for index, nodes in enumerate(cfg.model_dense_layout):
             if index == 0:
-                self.input = nn.Linear(768, cfg.model_dense_layout[0])
+                self.input = nn.Linear(768, nodes)
             elif index == len(cfg.model_dense_layout) - 1:
                 self.output = nn.Linear(cfg.model_dense_layout[index - 1], nodes)
             else:
@@ -56,8 +56,7 @@ class SimpleBitboardNetwork(nn.Module):
         x = self.input(x)
         for hidden in self.hidden:
             x = torch.clamp(hidden(x), 0.0, 1.0)
-        x = self.output(x)
-        return x
+        return self.output(x)
 
 
 class FenToSimpleBitboardEncoder:

@@ -1,7 +1,10 @@
 import argparse
 import glob
+import operator
 import os
 import re
+from collections import OrderedDict
+
 import torch
 import yaml
 
@@ -29,7 +32,7 @@ def train(args):
         to_load = ""
         iterator = glob.iglob(output_dir + "\\*.net")
         for file in iterator:
-            digit = re.findall(r'\d+', file)[0]
+            digit = re.findall(r'\d+', file)[-1]
             number = int(digit)
             if start_step < number:
                 start_step = number
@@ -37,64 +40,65 @@ def train(args):
         if to_load:
             print(f"Loading previous run: {to_load}")
             network.load_state_dict(torch.load(to_load))
+    network.to(cfg.device)
 
-    torch.set_num_threads(cfg.threads)
     train_dataset = CsvDataset(cfg, cfg.input)
     train_loader = DataLoader(dataset=train_dataset, batch_size=cfg.batch_size, shuffle=True)
 
-    criterion = nn.MSELoss(reduction="sum")
-    optimizer = optim.Adam(network.parameters(), lr=cfg.lr[0])
-    lr_index = 0
-    network.to(cfg.device)
-
-    for step in range(start_step, cfg.steps):
-        losses = []
-        if lr_index < len(cfg.lr_bounds) and cfg.lr_bounds[lr_index] <= step:
-            lr_index += 1
-            optimizer.lr = cfg.lr[lr_index]
-
-        loop = tqdm(enumerate(train_loader), total=len(train_loader))
-        for idx, (data, targets) in loop:
-            scores = network(data.to(cfg.device))
-            loss = criterion(scores, targets.to(cfg.device))
-
-            losses.append(loss.item())
-
-            # backward
-            optimizer.zero_grad()
-            loss.backward()
-
-            optimizer.step()
-            loop.set_description(f"STEP [{step + 1}/{cfg.steps}] LR {cfg.lr[lr_index]}")
-            loop.set_postfix(loss=sum(losses)/len(losses))
-
-        torch.save(network.state_dict(), f"{cfg.output}/step_{step + 1:06d}.net")
-
     validation_dataset = CsvDataset(cfg, cfg.validation)
     validation_loader = DataLoader(dataset=validation_dataset)
-    # check_accuracy(train_loader, network, cfg.device)
-    network.eval()
-    check_accuracy(validation_loader, network, cfg.device)
+
+    criterion_function = nn.MSELoss()
+    optimizer = optim.Adam(network.parameters(), lr=cfg.lr)
+
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=5, verbose=False)
+
+    for step in range(start_step, cfg.steps):
+        criterion_loss = 0
+
+        loop = tqdm(enumerate(train_loader), total=len(train_loader))
+        loop.set_description(f"STEP [{step + 1}/{cfg.steps}]")
+        for idx, (data, targets) in loop:
+            optimizer.zero_grad()
+            targets = targets.to(cfg.device)
+            loss = criterion_function(network(data.to(cfg.device)), targets)
+
+            criterion_loss += loss.item()
+
+            # backward
+            loss.backward()
+            optimizer.step()
+
+            loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 2))
+
+        scheduler.step(criterion_loss)
+        torch.save(network.state_dict(), f"{cfg.output}/step_{step + 1:06d}.net")
+    check_performance(validation_loader, network, cfg.device)
 
     # TODO: Save network
 
 
-def check_accuracy(loader, model, device):
-    error = 0
-    num_samples = 0
+def check_performance(loader, model, device):
+    error_map = {}
+    score_map = {}
+    result_map = {}
     model.eval()
 
     with torch.no_grad():
-        for x, y in loader:
+        for index, (x, y) in enumerate(loader):
             x = x.to(device=device)
             y = y.to(device=device)
 
             score = model(x)
-            error += 1 - abs(y - score)
-            num_samples += 1
+            error = abs(float(y) - float(score))
+            error_map[index] = error
+            score_map[index] = float(score)
+            result_map[index] = float(y)
 
-        print(f"{num_samples} samples with accuracy {float(error)/float(num_samples)*100:.2f}%")
-
+    sorted_keys = sorted(error_map, key=error_map.get, reverse=True)
+    print(f"E:{sum(error_map.values())/len(error_map)}")
+    for key in sorted_keys[:10]:
+        print(f"I:{key + 1} e:{error_map[key]} s:{score_map[key]} r:{result_map[key]}")
     model.train()
 
 
