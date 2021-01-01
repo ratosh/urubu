@@ -1,13 +1,10 @@
 import argparse
 import glob
-import operator
 import os
 import re
-from collections import OrderedDict
 
 import torch
 import yaml
-
 from torch import nn, optim
 from torch.utils.data import DataLoader
 from tqdm import tqdm
@@ -23,41 +20,49 @@ def train(args):
     cfg = TrainingConfig(yaml_file)
 
     output_dir = cfg.output
-    start_step = 0
+    start_epoch = 0
     network = parser_factory.get(cfg).get_network()
+    network.to(cfg.device)
+
+    criterion_function = nn.MSELoss()
+    optimizer = optim.Adagrad(network.parameters(), lr=cfg.lr)
+
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=5, verbose=False)
 
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     else:
         to_load = ""
-        iterator = glob.iglob(output_dir + "\\*.net")
+        iterator = glob.iglob(f"{output_dir}\\*.chkp")
         for file in iterator:
             digit = re.findall(r'\d+', file)[-1]
             number = int(digit)
-            if start_step < number:
-                start_step = number
+            if start_epoch < number:
+                start_epoch = number
                 to_load = file
         if to_load:
             print(f"Loading previous run: {to_load}")
-            network.load_state_dict(torch.load(to_load))
-    network.to(cfg.device)
+            file_loaded = torch.load(to_load)
+            network.to("cpu")
+            network.load_state_dict(file_loaded["network_state_dict"])
+            network.to(cfg.device)
+            optimizer.load_state_dict(file_loaded["optimizer_state_dict"])
+            scheduler.load_state_dict(file_loaded["scheduler_state_dict"])
+            network.train()
 
     train_dataset = CsvDataset(cfg, cfg.input)
-    train_loader = DataLoader(dataset=train_dataset, batch_size=cfg.batch_size, shuffle=True)
+    train_loader = DataLoader(dataset=train_dataset, batch_size=cfg.batch_size, shuffle=True, num_workers=cfg.threads)
 
     validation_dataset = CsvDataset(cfg, cfg.validation)
-    validation_loader = DataLoader(dataset=validation_dataset)
+    validation_loader = DataLoader(dataset=validation_dataset, num_workers=cfg.threads)
 
-    criterion_function = nn.MSELoss()
-    optimizer = optim.Adam(network.parameters(), lr=cfg.lr)
-
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.5, patience=5, verbose=False)
-
-    for step in range(start_step, cfg.steps):
+    if start_epoch != 0:
+        check_performance(validation_loader, network, cfg.device)
+    for epoch in range(start_epoch, cfg.epochs):
         criterion_loss = 0
 
         loop = tqdm(enumerate(train_loader), total=len(train_loader))
-        loop.set_description(f"STEP [{step + 1}/{cfg.steps}]")
+        loop.set_description(f"EPOCH [{epoch + 1}/{cfg.epochs}]")
         for idx, (data, targets) in loop:
             optimizer.zero_grad()
             targets = targets.to(cfg.device)
@@ -69,16 +74,28 @@ def train(args):
             loss.backward()
             optimizer.step()
 
-            loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 2))
+            if (epoch + 1) % 10 == 0 and idx == loop.total - 1:
+                loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 3),
+                                 acc=round(check_accuracy(validation_loader, network, cfg.device), 3))
+            else:
+                loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 3))
 
         scheduler.step(criterion_loss)
-        torch.save(network.state_dict(), f"{cfg.output}/step_{step + 1:06d}.net")
+
+        network.to("cpu")
+        torch.save({
+            'network_state_dict': network.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'scheduler_state_dict': scheduler.state_dict(),
+        }, f"{cfg.output}\\epoch_{epoch + 1:06d}.chkp")
+        network.to(cfg.device)
     check_performance(validation_loader, network, cfg.device)
 
-    # TODO: Save network
+    # TODO: Save network binary (not torch)
 
 
 def check_performance(loader, model, device):
+    print("Checking performance")
     error_map = {}
     score_map = {}
     result_map = {}
@@ -96,10 +113,27 @@ def check_performance(loader, model, device):
             result_map[index] = float(y)
 
     sorted_keys = sorted(error_map, key=error_map.get, reverse=True)
-    print(f"E:{sum(error_map.values())/len(error_map)}")
+    print(f"E:{100*sum(error_map.values())/len(error_map)}")
     for key in sorted_keys[:10]:
         print(f"I:{key + 1} e:{error_map[key]} s:{score_map[key]} r:{result_map[key]}")
     model.train()
+
+
+def check_accuracy(loader, model, device):
+    error_map = {}
+    model.eval()
+
+    with torch.no_grad():
+        for index, (x, y) in enumerate(loader):
+            x = x.to(device=device)
+            y = y.to(device=device)
+
+            score = model(x)
+            error = abs(float(y) - float(score))
+            error_map[index] = error
+
+    model.train()
+    return 100*sum(error_map.values())/len(error_map)
 
 
 if __name__ == "__main__":
