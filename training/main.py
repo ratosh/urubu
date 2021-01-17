@@ -10,7 +10,8 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 
 from dataset import CsvDataset
-from network import parser_factory
+from encoding import parser_factory
+from network_pb2 import Network, Layer, Weight
 from training_config import TrainingConfig
 
 
@@ -56,8 +57,8 @@ def train(args):
     validation_dataset = CsvDataset(cfg, cfg.validation)
     validation_loader = DataLoader(dataset=validation_dataset, num_workers=cfg.threads)
 
-    if start_epoch != 0:
-        check_performance(validation_loader, network, cfg.device)
+    # if start_epoch != 0:
+    #     check_performance(validation_loader, network, cfg.device)
     for epoch in range(start_epoch, cfg.epochs):
         criterion_loss = 0
 
@@ -75,10 +76,10 @@ def train(args):
             optimizer.step()
 
             if (epoch + 1) % 10 == 0 and idx == loop.total - 1:
-                loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 3),
-                                 acc=round(check_accuracy(validation_loader, network, cfg.device), 3))
+                loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 5),
+                                 acc=round(check_accuracy(validation_loader, network, cfg.device), 5))
             else:
-                loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 3))
+                loop.set_postfix(lr=optimizer.param_groups[0]['lr'], loss=round(100*criterion_loss/(idx + 1), 5))
 
         scheduler.step(criterion_loss)
 
@@ -89,9 +90,24 @@ def train(args):
             'scheduler_state_dict': scheduler.state_dict(),
         }, f"{cfg.output}\\epoch_{epoch + 1:06d}.chkp")
         network.to(cfg.device)
-    check_performance(validation_loader, network, cfg.device)
 
-    # TODO: Save network binary (not torch)
+    proto_network = Network()
+    for index, parameter in enumerate(network.parameters()):
+        if parameter.dim() == 1:
+            layer = proto_network.layers[-1]
+            layer.bias[:] = [float(tensor.item()) for tensor in parameter.data]
+        else:
+            layer = Layer()
+            for row in parameter.data:
+                weight = Weight()
+                weight.values[:] = [float(tensor.item()) for tensor in row.data]
+                layer.weights.append(weight)
+            proto_network.layers.append(layer)
+    with open(f"{cfg.output}\\network.net", "wb") as file:
+        file.write(proto_network.SerializeToString())
+
+    if start_epoch < cfg.epochs:
+        check_performance(validation_loader, network, cfg.device)
 
 
 def check_performance(loader, model, device):
@@ -102,38 +118,31 @@ def check_performance(loader, model, device):
     model.eval()
 
     with torch.no_grad():
-        for index, (x, y) in enumerate(loader):
-            x = x.to(device=device)
-            y = y.to(device=device)
+        for index, (input, result) in enumerate(loader):
+            model_result = model(input.to(device))
 
-            score = model(x)
-            error = abs(float(y) - float(score))
-            error_map[index] = error
-            score_map[index] = float(score)
-            result_map[index] = float(y)
+            score_map[index] = float(model_result)
+            result_map[index] = float(result)
+            error_map[index] = abs(result_map[index] - score_map[index])
 
     sorted_keys = sorted(error_map, key=error_map.get, reverse=True)
-    print(f"E:{100*sum(error_map.values())/len(error_map)}")
+    print(f"E:{(sum(error_map.values())/len(error_map))}")
     for key in sorted_keys[:10]:
-        print(f"I:{key + 1} e:{error_map[key]} s:{score_map[key]} r:{result_map[key]}")
+        print(f"K:{key + 1} e:{error_map[key]} s:{score_map[key]} r:{result_map[key]}")
     model.train()
 
 
 def check_accuracy(loader, model, device):
-    error_map = {}
     model.eval()
+    total_loss = 0.0
 
     with torch.no_grad():
-        for index, (x, y) in enumerate(loader):
-            x = x.to(device=device)
-            y = y.to(device=device)
-
-            score = model(x)
-            error = abs(float(y) - float(score))
-            error_map[index] = error
+        for index, (input, result) in enumerate(loader):
+            model_result = model(input.to(device))
+            total_loss += abs(float(result) - float(model_result))
 
     model.train()
-    return 100*sum(error_map.values())/len(error_map)
+    return total_loss/loader.__len__()
 
 
 if __name__ == "__main__":

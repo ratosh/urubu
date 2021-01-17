@@ -1,17 +1,16 @@
-name: 'adagrad_b65536_128x32x32'
+name: 'adagrad_b16384_256_32_s9'
 device: cuda:0
-threads: 12
+threads: 8
 training:
-  batch_size: 65536
+  batch_size: 16384
   input: '.\input_sample\'
   validation: '.\validation_sample\'
   output: '.\training\'
-  epochs: 1000
+  epochs: 200
   learning_rate: 0.05
 model:
   type: 0
   dense:
-     - 128
-     - 32
+     - 256
      - 32
      - 1

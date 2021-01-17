@@ -3,3 +3,4 @@ protobuf
 python-chess
 pytorch-lightning
 torch
+torchsummary

@@ -2,7 +2,7 @@ import glob
 
 from torch.utils.data import Dataset
 
-from network import parser_factory
+from encoding import parser_factory
 
 
 class CsvDataset(Dataset):
@@ -33,7 +33,8 @@ class CsvDataset(Dataset):
         split = item.split(",")
         fen = split[0]
         result = split[1]
-        return self.encoder.encode_fen(fen), self.encoder.encode_result(result)
+        encoded_fen = self.encoder.encode_fen(fen)
+        return encoded_fen[0], self.encoder.encode_result(result, encoded_fen[1])
 
     def __getitem__(self, index):
         return self.encode(self.items[index])

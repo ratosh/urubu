@@ -2,6 +2,8 @@ import chess
 import torch
 from torch import nn
 
+INPUT_SIZE = 768
+
 
 class ParserFactory:
 
@@ -45,7 +47,7 @@ class SimpleBitboardNetwork(nn.Module):
         self.hidden = []
         for index, nodes in enumerate(cfg.model_dense_layout):
             if index == 0:
-                self.input = nn.Linear(768, nodes)
+                self.input = nn.Linear(INPUT_SIZE, nodes)
             elif index == len(cfg.model_dense_layout) - 1:
                 self.output = nn.Linear(cfg.model_dense_layout[index - 1], nodes)
             else:
@@ -63,15 +65,17 @@ class FenToSimpleBitboardEncoder:
 
     def encode_fen(self, fen):
         board = chess.Board(fen=fen)
-        result = torch.zeros(768)
+        result = torch.zeros(INPUT_SIZE)
         for (square, piece) in board.piece_map().items():
-            result[self.calculate_index(square, piece)] = 1.0
-        return result
+            result[self.calculate_index(square, piece, board.turn)] = 1.0
+        return result, float(board.turn)
 
     @staticmethod
-    def encode_result(result):
+    def encode_result(result, turn):
+        # return torch.tensor([abs(turn - float(result))])
         return torch.tensor([float(result)])
 
     @staticmethod
-    def calculate_index(square: chess.Square, piece: chess.Piece):
-        return square + 64 * (piece.piece_type - 1) + 64 * 6 * piece.color
+    def calculate_index(square: chess.Square, piece: chess.Piece, stm: int):
+        # return (square ^ (56 * stm)) + (64 * (piece.piece_type - 1) * 2) + 64 * (piece.color ^ stm)
+        return square + (64 * (piece.piece_type - 1) * 2) + 64 * piece.color

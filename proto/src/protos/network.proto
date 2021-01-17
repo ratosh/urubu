@@ -1,0 +1,18 @@
+syntax = "proto2";
+
+package protos;
+
+message Network {
+
+  repeated Layer layers = 1;
+}
+
+message Layer {
+
+  repeated Weight weights = 1;
+  repeated double bias = 2;
+}
+
+message Weight {
+  repeated double values = 1;
+}

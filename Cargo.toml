@@ -28,10 +28,4 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-
-[dev-dependencies]
-criterion = "0.3"
-
-[[bench]]
-name = "benches"
-harness = false
+proto = {path = "proto"}
