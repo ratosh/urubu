@@ -29,7 +29,7 @@ impl Board {
                 file += skip;
             } else {
                 let (piece_type, color) = PieceType::from_char(token);
-                result.add_piece(&color, &piece_type, &Square::from_file_rank(&File::FILES[file], &Rank::RANKS[rank]));
+                result.add_piece(color, piece_type, Square::from_file_rank(&File::FILES[file], &Rank::RANKS[rank]));
                 file += 1;
             }
         }
@@ -70,8 +70,7 @@ impl Board {
         for rank in Rank::RANKS.iter().rev() {
             for file in File::FILES.iter() {
                 let square = Square::from_file_rank(file, rank);
-                let bitboard = Bitboard::from_square(&square);
-                let piece_type = self.piece_type(&square);
+                let piece_type = self.piece_type(square);
                 if piece_type == PieceType::NONE {
                     empty_squares += 1;
                     continue
@@ -82,7 +81,7 @@ impl Board {
                 }
 
 
-                result.push(piece_type.to_char_colored(self.color_at(&square).unwrap()));
+                result.push(piece_type.to_char_colored(self.color_at(square).unwrap()));
             }
             if empty_squares > 0 {
                 result.push(std::char::from_digit(empty_squares, 10).unwrap());

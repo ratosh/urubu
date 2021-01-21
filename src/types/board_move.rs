@@ -13,22 +13,22 @@ impl BoardMove {
     pub const MOVE_TYPE_SHIFT: u16 = 12;
 
     #[inline]
-    pub fn build_normal(square_from: &Square, square_to: &Square) -> BoardMove {
-        BoardMove::build_move(square_from, square_to, &MoveType::NORMAL)
+    pub fn build_normal(square_from: Square, square_to: Square) -> BoardMove {
+        BoardMove::build_move(square_from, square_to, MoveType::NORMAL)
     }
 
     #[inline]
-    pub fn build_passant(square_from: &Square, square_to: &Square) -> BoardMove {
-        BoardMove::build_move(square_from, square_to, &MoveType::PASSANT)
+    pub fn build_passant(square_from: Square, square_to: Square) -> BoardMove {
+        BoardMove::build_move(square_from, square_to, MoveType::PASSANT)
     }
 
     #[inline]
-    pub fn build_castling(square_from: &Square, square_to: &Square) -> BoardMove {
-        BoardMove::build_move(square_from, square_to, &MoveType::CASTLING)
+    pub fn build_castling(square_from: Square, square_to: Square) -> BoardMove {
+        BoardMove::build_move(square_from, square_to, MoveType::CASTLING)
     }
 
     #[inline]
-    pub fn build_move(square_from: &Square, square_to: &Square, move_type: &MoveType) -> BoardMove {
+    pub fn build_move(square_from: Square, square_to: Square, move_type: MoveType) -> BoardMove {
         BoardMove((square_from.to_u16() |
             square_to.to_u16() << BoardMove::TO_SHIFT |
             move_type.to_u16() << BoardMove::MOVE_TYPE_SHIFT) as u16)
@@ -68,9 +68,9 @@ mod testing {
 
     #[test]
     fn to_string() {
-        assert_eq!(BoardMove::build_normal(&Square::A1, &Square::A2).to_string(), "a1a2");
-        assert_eq!(BoardMove::build_normal(&Square::B2, &Square::B8).to_string(), "b2b8");
-        assert_eq!(BoardMove::build_normal(&Square::C3, &Square::D4).to_string(), "c3d4");
-        assert_eq!(BoardMove::build_move(&Square::H7, &Square::H8, &MoveType::PROMOTION_QUEEN).to_string(), "h7h8q");
+        assert_eq!(BoardMove::build_normal(Square::A1, Square::A2).to_string(), "a1a2");
+        assert_eq!(BoardMove::build_normal(Square::B2, Square::B8).to_string(), "b2b8");
+        assert_eq!(BoardMove::build_normal(Square::C3, Square::D4).to_string(), "c3d4");
+        assert_eq!(BoardMove::build_move(Square::H7, Square::H8, MoveType::PROMOTION_QUEEN).to_string(), "h7h8q");
     }
 }

@@ -122,7 +122,7 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn from_square(square: &Square) -> Self {
+    pub fn from_square(square: Square) -> Self {
         Bitboard(1u64 << square.to_u64())
     }
 
@@ -142,7 +142,7 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn is_set(&self, square: &Square) -> bool {
+    pub fn is_set(&self, square: Square) -> bool {
         (1u64 << square.to_u64()) & self.0 != Bitboard::EMPTY.0
     }
 
@@ -152,22 +152,22 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn intersect(&self, other: &Self) -> Self {
+    pub fn intersect(&self, other: Self) -> Self {
         Bitboard(self.0 & other.0)
     }
 
     #[inline]
-    pub fn union(&self, other: &Self) -> Self {
+    pub fn union(&self, other: Self) -> Self {
         Bitboard(self.0 | other.0)
     }
 
     #[inline]
-    pub fn difference(&self, other: &Self) -> Self {
+    pub fn difference(&self, other: Self) -> Self {
         Bitboard(self.0 & !other.0)
     }
 
     #[inline]
-    pub fn invert(&self, other: &Self) -> Self {
+    pub fn invert(&self, other: Self) -> Self {
         Bitboard(self.0 ^ other.0)
     }
 
@@ -177,8 +177,8 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn with_square(&self, square: &Square) -> Self {
-        self.union(&Bitboard::from_square(square))
+    pub fn with_square(&self, square: Square) -> Self {
+        self.union(Bitboard::from_square(square))
     }
 
     #[inline]
@@ -187,7 +187,7 @@ impl Bitboard {
     }
 
     #[inline]
-    pub fn has(&self, other: &Bitboard) -> bool {
+    pub fn has(&self, other: Bitboard) -> bool {
         self.intersect(other).is_not_empty()
     }
 
@@ -207,17 +207,17 @@ mod test {
 
     #[test]
     fn from_square() {
-        assert_eq!(Bitboard::from_square(&Square::A1), Bitboard::A1);
-        assert_eq!(Bitboard::from_square(&Square::A8), Bitboard::A8);
-        assert_eq!(Bitboard::from_square(&Square::H1), Bitboard::H1);
-        assert_eq!(Bitboard::from_square(&Square::H8), Bitboard::H8);
+        assert_eq!(Bitboard::from_square(Square::A1), Bitboard::A1);
+        assert_eq!(Bitboard::from_square(Square::A8), Bitboard::A8);
+        assert_eq!(Bitboard::from_square(Square::H1), Bitboard::H1);
+        assert_eq!(Bitboard::from_square(Square::H8), Bitboard::H8);
     }
 
     #[test]
     fn is_set() {
-        assert_eq!(Bitboard::A1.is_set(&Square::A1), true);
-        assert_eq!(Bitboard::H1.is_set(&Square::H1), true);
-        assert_eq!(Bitboard::A2.is_set(&Square::A2), true);
-        assert_eq!(Bitboard::G2.is_set(&Square::G2), true);
+        assert_eq!(Bitboard::A1.is_set(Square::A1), true);
+        assert_eq!(Bitboard::H1.is_set(Square::H1), true);
+        assert_eq!(Bitboard::A2.is_set(Square::A2), true);
+        assert_eq!(Bitboard::G2.is_set(Square::G2), true);
     }
 }

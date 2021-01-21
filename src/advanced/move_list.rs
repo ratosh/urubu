@@ -76,7 +76,7 @@ mod test {
     #[test]
     fn add_next() {
         let mut move_list = MoveList::new();
-        let board_move = BoardMove::build_normal(&Square::A1, &Square::A2);
+        let board_move = BoardMove::build_normal(Square::A1, Square::A2);
         move_list.add_move(board_move);
         assert_eq!(move_list.next(), board_move)
     }
@@ -84,8 +84,8 @@ mod test {
     #[test]
     fn double_add_next() {
         let mut move_list = MoveList::new();
-        let board_move1 = BoardMove::build_normal(&Square::A1, &Square::A2);
-        let board_move2 = BoardMove::build_normal(&Square::A2, &Square::A1);
+        let board_move1 = BoardMove::build_normal(Square::A1, Square::A2);
+        let board_move2 = BoardMove::build_normal(Square::A2, Square::A1);
         move_list.add_move(board_move1);
         move_list.add_move(board_move2);
         assert_eq!(move_list.next(), board_move1);
@@ -106,7 +106,7 @@ mod test {
     fn has_next() {
         let mut move_list = MoveList::new();
         assert_eq!(move_list.has_next(), false);
-        let board_move = BoardMove::build_normal(&Square::A1, &Square::A2);
+        let board_move = BoardMove::build_normal(Square::A1, Square::A2);
         move_list.add_move(board_move);
         assert_eq!(move_list.has_next(), true);
         move_list.start_ply();
@@ -119,7 +119,7 @@ mod test {
     fn skip_moves() {
         let mut move_list = MoveList::new();
         assert_eq!(move_list.has_next(), false);
-        let board_move = BoardMove::build_normal(&Square::A1, &Square::A2);
+        let board_move = BoardMove::build_normal(Square::A1, Square::A2);
         move_list.start_ply();
         assert_eq!(move_list.has_next(), false);
         move_list.skip_moves();

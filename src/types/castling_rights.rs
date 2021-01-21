@@ -79,7 +79,7 @@ impl CastlingIndex {
     }
 
     #[inline]
-    pub fn from_color_side(color: &Color, castling_side: &CastlingSide) -> Self {
+    pub fn from_color_side(color: Color, castling_side: CastlingSide) -> Self {
         CastlingIndex::unsafe_creation(castling_side.to_u32() + 2 * color.to_u32())
     }
 
