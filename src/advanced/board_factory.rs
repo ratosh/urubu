@@ -7,7 +7,6 @@ use crate::types::color::Color;
 use crate::types::castling_rights::CastlingRights;
 use std::cmp;
 use std::cmp::max;
-use crate::types::bitboard::Bitboard;
 
 impl Board {
     const EMPTY_SPACE: char = ' ';

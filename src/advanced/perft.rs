@@ -71,8 +71,6 @@ mod test {
     use std::io::{BufReader, BufRead};
     use crate::advanced::board::Board;
     use crate::advanced::perft::Perft;
-    use crate::types::board_move::BoardMove;
-    use crate::types::square::Square;
 
     fn check_perft_file(path: &str, depth_limit: u8) {
         let file = File::open(path).expect("failed to open test suite");

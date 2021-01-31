@@ -3,7 +3,6 @@ use crate::advanced::board::Board;
 use crate::advanced::move_list::MoveList;
 use crate::types::bitboard::Bitboard;
 use crate::types::board_move::BoardMove;
-use crate::types::color::Color;
 use crate::types::move_type::MoveType;
 use crate::types::piece_type::PieceType;
 use crate::types::square::Square;
@@ -72,7 +71,7 @@ impl MoveList {
                     .intersect(mask)
             };
 
-            self.generate_moves_from_square(color, square, move_bitboard);
+            self.generate_moves_from_square(square, move_bitboard);
         }
     }
 
@@ -84,12 +83,12 @@ impl MoveList {
             return;
         }
         for square in board.piece_bitboard(color, piece_type).iterator() {
-            self.generate_moves_from_square(color, square, attack_info.movement(&square).intersect(mask))
+            self.generate_moves_from_square(square, attack_info.movement(&square).intersect(mask))
         }
     }
 
     #[inline]
-    fn generate_moves_from_square(&mut self, color: Color, square: Square, bitboard: Bitboard) {
+    fn generate_moves_from_square(&mut self, square: Square, bitboard: Bitboard) {
         for square_to in bitboard.iterator() {
             let board_move = BoardMove::build_normal(square, square_to);
             self.add_move(board_move);
@@ -161,7 +160,7 @@ impl MoveList {
                 let king_square = board.king_square(color);
                 bitboard_to = bitboard_to.intersect(king_square.pinned_mask(square));
             }
-            self.generate_moves_from_square(color, square, bitboard_to);
+            self.generate_moves_from_square(square, bitboard_to);
         }
     }
 
@@ -182,7 +181,7 @@ impl MoveList {
                 let king_square = board.king_square(color);
                 bitboard_to = bitboard_to.intersect(king_square.pinned_mask(square));
             }
-            self.generate_promotions(color, square, bitboard_to);
+            self.generate_promotions(square, bitboard_to);
         }
     }
 
@@ -196,19 +195,19 @@ impl MoveList {
             .intersect(Bitboard::PROMOTION[color.to_usize()]);
 
         for square in pawn_bitboard.iterator() {
-            self.generate_promotion(color, square, square.forward(&color));
+            self.generate_promotion(square, square.forward(&color));
         }
     }
 
     #[inline]
-    fn generate_promotions(&mut self, color: Color, square_from: Square, bitboard_to: Bitboard) {
+    fn generate_promotions(&mut self, square_from: Square, bitboard_to: Bitboard) {
         for square in bitboard_to.iterator() {
-            self.generate_promotion(color, square_from, square);
+            self.generate_promotion(square_from, square);
         }
     }
 
     #[inline]
-    fn generate_promotion(&mut self, color: Color, square_from: Square, square_to: Square) {
+    fn generate_promotion(&mut self, square_from: Square, square_to: Square) {
         self.add_move(BoardMove::build_move(square_from, square_to, MoveType::PROMOTION_QUEEN));
         self.add_move(BoardMove::build_move(square_from, square_to, MoveType::PROMOTION_ROOK));
         self.add_move(BoardMove::build_move(square_from, square_to, MoveType::PROMOTION_BISHOP));

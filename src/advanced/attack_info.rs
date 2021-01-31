@@ -135,7 +135,6 @@ impl AttackInfo {
     #[inline]
     fn bishop_moves(&mut self, board: &Board, color: Color, mask: Bitboard) {
         let bishops = board.piece_bitboard(color, PieceType::BISHOP);
-        let king_square = board.king_square(color);
 
         for square in bishops.iterator() {
             let bitboard = square.bishop_moves(board.game_bitboard()).intersect(mask);
@@ -147,10 +146,8 @@ impl AttackInfo {
     #[inline]
     fn rook_moves(&mut self, board: &Board, color: Color, mask: Bitboard) {
         let rooks = board.piece_bitboard(color, PieceType::ROOK);
-        let king_square = board.king_square(color);
 
         for square in rooks.iterator() {
-            let from_bitboard = Bitboard::from_square(square);
             let bitboard = square.rook_moves(board.game_bitboard()).intersect(mask);
             let pinned_bitboard = pinned_mask(board, color, square, bitboard);
             self.register_bitboard(color, PieceType::ROOK, square, bitboard, pinned_bitboard);
@@ -160,10 +157,8 @@ impl AttackInfo {
     #[inline]
     fn queen_moves(&mut self, board: &Board, color: Color, mask: Bitboard) {
         let queens = board.piece_bitboard(color, PieceType::QUEEN);
-        let king_square = board.king_square(color);
 
         for square in queens.iterator() {
-            let from_bitboard = Bitboard::from_square(square);
             let bitboard =
                 square.bishop_moves(board.game_bitboard())
                     .union(square.rook_moves(board.game_bitboard()))

@@ -1,7 +1,6 @@
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use std::iter::Iterator;
 
 use crate::types::bitboard::Bitboard;
 
