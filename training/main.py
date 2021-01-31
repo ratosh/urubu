@@ -57,8 +57,8 @@ def train(args):
     validation_dataset = CsvDataset(cfg, cfg.validation)
     validation_loader = DataLoader(dataset=validation_dataset, num_workers=cfg.threads)
 
-    # if start_epoch != 0:
-    #     check_performance(validation_loader, network, cfg.device)
+    if start_epoch != 0:
+        check_performance(validation_loader, network, cfg.device)
     for epoch in range(start_epoch, cfg.epochs):
         criterion_loss = 0
 
